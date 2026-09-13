@@ -1,0 +1,27 @@
+# Browser sessions contain Feishu authentication state.
+chrome-profile*/
+
+# Extracted source caches and refresh runtime state.
+feishu-*.json
+feishu-raw.json
+refresh-status.json
+.refresh-*/
+.refresh-data.lock
+
+# Local diagnostics and generated previews.
+*.log
+*.png
+build-audit.json
+inspect-out.json
+cdp-*.mjs
+inspect-*.mjs
+verify-current.mjs
+merge-extracted.mjs
+strip-legacy.mjs
+extract-feishu.mjs
+
+# Editor and operating-system files.
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,14 @@
+{
+  "name": "amazon-data-ihealth",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "refresh": "node refresh-data.mjs --trigger manual",
+    "check": "node --check server.mjs && node --check refresh-data.mjs && node --check extract-one.mjs && node --check build-data.mjs && node --check dashboard-runtime.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
