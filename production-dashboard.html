@@ -410,6 +410,10 @@
 
   <script>
     (async function loadProductionDashboard() {
+      const withTimeout = (promise, ms) => new Promise((resolve, reject) => {
+        const timer = window.setTimeout(() => reject(new Error(`生产数据接口超过 ${Math.round(ms / 1000)} 秒未响应`)), ms);
+        promise.then((value) => { window.clearTimeout(timer); resolve(value); }, (error) => { window.clearTimeout(timer); reject(error); });
+      });
       const loadScript = (src) => new Promise((resolve, reject) => {
         const script = document.createElement('script');
         script.src = src;
@@ -418,12 +422,18 @@
         document.head.appendChild(script);
       });
       try {
-        const response = await fetch('/api/data', { cache: 'no-store' });
+        const response = await withTimeout(fetch('/api/data', { cache: 'no-store' }), 15000);
         if (!response.ok) throw new Error(`生产数据接口返回 ${response.status}`);
         window.AMAZON_DATA = await response.json();
       } catch (error) {
         console.warn('生产数据接口暂不可用，使用仓库内最近一次发布数据：', error);
-        await loadScript('amazon-data.js');
+        try {
+          await loadScript('amazon-data.js');
+        } catch (fallbackError) {
+          document.body.innerHTML = '<main style="max-width:720px;margin:12vh auto;padding:24px;font:16px/1.7 system-ui;color:#243b53"><h1>数据暂时无法加载</h1><p>生产数据接口和备用数据文件都无法读取，请稍后重试或联系管理员。</p></main>';
+          console.error('生产数据和备用数据均加载失败：', error, fallbackError);
+          return;
+        }
       }
       await loadScript('dashboard-runtime.js');
     })();
