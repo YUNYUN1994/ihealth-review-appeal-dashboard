@@ -1,4 +1,5 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "cleanUrls": true,
   "rewrites": [
@@ -20,19 +21,11 @@
   "functions": {
     "api/refresh/index.js": {
       "maxDuration": 300,
-      "includeFiles": [
-        "build-data.mjs",
-        "month-cutoff.mjs",
-        "inventory-model.mjs"
-      ]
+      "includeFiles": "*.mjs"
     },
     "api/cron/refresh.js": {
       "maxDuration": 300,
-      "includeFiles": [
-        "build-data.mjs",
-        "month-cutoff.mjs",
-        "inventory-model.mjs"
-      ]
+      "includeFiles": "*.mjs"
     }
   }
 }
