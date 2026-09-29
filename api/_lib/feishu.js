@@ -45,33 +45,63 @@ function cell(value) {
   return { value, text };
 }
 
+function columnName(number) {
+  let value = Math.max(1, Number(number) || 1);
+  let result = '';
+  while (value > 0) {
+    const remainder = (value - 1) % 26;
+    result = String.fromCharCode(65 + remainder) + result;
+    value = Math.floor((value - 1) / 26);
+  }
+  return result;
+}
+
+async function querySheetMetadata(accessToken) {
+  const url = `${API_BASE}/sheets/v3/spreadsheets/${encodeURIComponent(tokenFromUrl())}/sheets/query`;
+  const response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+  const json = await responseJson(response, '获取飞书工作表列表');
+  return json.data?.sheets || [];
+}
+
 export async function readSheet(accessToken, sheet) {
-  // The range deliberately uses the sheet id, not the visible sheet name.
-  // This avoids failures when a user renames a business tab.
-  const range = `${sheet.id}!A1:ZZ10000`;
+  const rowCount = Math.max(Number(sheet.rowCount) || 0, sheet.minRows || 1);
+  const colCount = Math.max(Number(sheet.colCount) || 0, sheet.minCols || 1);
+  const range = `${sheet.id}!A1:${columnName(colCount)}${rowCount}`;
   const url = new URL(`${API_BASE}/sheets/v2/spreadsheets/${encodeURIComponent(tokenFromUrl())}/values_batch_get`);
   url.searchParams.set('ranges', range);
   url.searchParams.set('valueRenderOption', 'ToString');
   url.searchParams.set('dateTimeRenderOption', 'FormattedString');
   const response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
-  const json = await responseJson(response, `读取${sheet.name}`);
+  const json = await responseJson(response, `读取${sheet.name}（范围 ${range}）`);
   const valueRange = json.data?.valueRanges?.[0] || json.data?.valueRange || json.data?.value_ranges?.[0];
   const matrix = valueRange?.values || [];
   const rows = [];
-  let colCount = 0;
+  let actualColCount = 0;
   matrix.forEach((row, rowIndex) => {
     const values = Array.isArray(row) ? row.map(cell) : [];
-    colCount = Math.max(colCount, values.length);
+    actualColCount = Math.max(actualColCount, values.length);
     if (values.some((item) => item.text !== '' || (item.value !== null && item.value !== undefined && item.value !== ''))) rows.push({ row: rowIndex, values });
   });
   if (rows.length < sheet.minRows) throw new Error(`${sheet.name} 只读取到 ${rows.length} 行，低于安全下限 ${sheet.minRows} 行`);
-  if (colCount < sheet.minCols) throw new Error(`${sheet.name} 只读取到 ${colCount} 列，低于安全下限 ${sheet.minCols} 列`);
-  return { id: sheet.id, name: sheet.name, rowCount: matrix.length, colCount, rows };
+  if (actualColCount < sheet.minCols) throw new Error(`${sheet.name} 只读取到 ${actualColCount} 列，低于安全下限 ${sheet.minCols} 列`);
+  return { id: sheet.id, name: sheet.name, rowCount: matrix.length, colCount: actualColCount, rows };
 }
 
 export async function readAllSheets() {
   const accessToken = await tenantAccessToken();
+  const metadata = await querySheetMetadata(accessToken);
+  const metadataByTitle = new Map(metadata.map((sheet) => [String(sheet.title || '').trim(), sheet]));
   const sheets = {};
-  for (const sheet of FEISHU_SHEETS) sheets[sheet.name] = await readSheet(accessToken, sheet);
+  for (const configured of FEISHU_SHEETS) {
+    const live = metadataByTitle.get(configured.name);
+    if (!live?.sheet_id) throw new Error(`找不到飞书工作表“${configured.name}”，请检查表名是否被修改`);
+    const grid = live.grid_properties || {};
+    sheets[configured.name] = await readSheet(accessToken, {
+      ...configured,
+      id: live.sheet_id,
+      rowCount: grid.row_count,
+      colCount: grid.column_count,
+    });
+  }
   return { source: `https://open.feishu.cn/sheets/${tokenFromUrl()}`, extractedAt: new Date().toISOString(), sheets };
 }
