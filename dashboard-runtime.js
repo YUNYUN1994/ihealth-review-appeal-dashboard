@@ -1077,7 +1077,24 @@
     }
   }
 
+  function refreshServiceAvailable() {
+    const host = window.location.hostname;
+    return host === 'localhost' || host === '127.0.0.1';
+  }
+
+  function renderProductionRefreshStatus() {
+    const button = $('#refreshDataBtn');
+    const label = $('#refreshButtonLabel');
+    const summary = $('#refreshStatus');
+    if (!button || !summary) return;
+    button.disabled = true;
+    button.title = '生产网页只展示已发布数据；自动抓取需要通过本地服务运行';
+    if (label) label.textContent = '生产版不可抓取';
+    summary.classList.remove('running', 'error');
+    summary.textContent = '生产版已发布数据 · 自动抓取请通过本地服务打开';
+  }
   async function updateRefreshStatus() {
+    if (!refreshServiceAvailable()) { renderProductionRefreshStatus(); return; }
     try {
       const response = await fetch('/api/refresh/status', { cache: 'no-store' });
       if (!response.ok) throw new Error(`状态接口返回 ${response.status}`);
@@ -1113,6 +1130,7 @@
   }
 
   async function requestDataRefresh() {
+    if (!refreshServiceAvailable()) { renderProductionRefreshStatus(); showToast('生产网页不能直接连接本地抓取服务，请使用本地服务打开后更新数据', 'error'); return; }
     const button = $('#refreshDataBtn');
     button.disabled = true;
     button.classList.add('refreshing');
