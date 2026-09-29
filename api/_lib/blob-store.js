@@ -17,6 +17,7 @@ async function write(pathname, value) {
   const blob = await put(pathname, JSON.stringify(value), {
     access: 'private',
     addRandomSuffix: false,
+    allowOverwrite: true,
     contentType: 'application/json',
     cacheControlMaxAge: 0,
   });
