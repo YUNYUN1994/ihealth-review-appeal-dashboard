@@ -4,7 +4,35 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "/amazon-dashboard.html"
+      "destination": "/production-dashboard.html"
     }
-  ]
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/refresh",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/refresh",
+      "schedule": "0 10 * * *"
+    }
+  ],
+  "functions": {
+    "api/refresh/index.js": {
+      "maxDuration": 300,
+      "includeFiles": [
+        "build-data.mjs",
+        "month-cutoff.mjs",
+        "inventory-model.mjs"
+      ]
+    },
+    "api/cron/refresh.js": {
+      "maxDuration": 300,
+      "includeFiles": [
+        "build-data.mjs",
+        "month-cutoff.mjs",
+        "inventory-model.mjs"
+      ]
+    }
+  }
 }

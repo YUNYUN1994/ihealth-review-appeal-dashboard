@@ -1,5 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { monthCutoff } from './month-cutoff.mjs';
+import { buildInventory } from './inventory-model.mjs';
 
 const inputFile = path.resolve(process.argv[2] || 'feishu-raw.json');
 const outputFile = path.resolve(process.argv[3] || 'amazon-data.js');
@@ -213,24 +215,48 @@ const actuals = {
   lx: { month: parseLxMonth(), week: parseLxWeek() },
 };
 const targets = parseTargets();
-
-function monthCutoff(dimension, latestPeriod) {
-  if (!latestPeriod) return '';
-  const [year, month] = latestPeriod.split('-').map(Number);
-  let day = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  if (dimension === 'lx') {
-    const latestSource = raw.sheets['领星_月度订单利润'].rows.find((row) => monthKey(valueAt(row, 0), textAt(row, 0)) === latestPeriod);
-    const partialDay = String(textAt(latestSource, 0) || '').match(/截至\s*(\d{1,2})\s*日/);
-    if (partialDay) day = Number(partialDay[1]);
-  }
-  return `${latestPeriod}-${String(day).padStart(2, '0')}`;
-}
+const inventory = buildInventory({ sheet: raw.sheets['库存表'], productRows, actuals, extractedAt: raw.extractedAt });
 
 function monthlyCoverage(dimension, rows) {
   const periods = [...new Set(rows.map((row) => row.period).filter(Boolean))].sort();
   const latestPeriod = periods[periods.length - 1] || '';
   if (!latestPeriod) return { latestPeriod: '', cutoff: '' };
-  return { latestPeriod, cutoff: monthCutoff(dimension, latestPeriod), periods: Object.fromEntries(periods.map((period) => [period, monthCutoff(dimension, period)])) };
+  const [sheet, column] = dimension === 'pm' ? ['PM_年月数据', 1] : ['领星_月度订单利润', 0];
+  const sourceRows = raw.sheets[sheet].rows.slice(1);
+  const cutoffs = Object.fromEntries(periods.map((period) => {
+    let labels = sourceRows.filter((row) => monthKey(valueAt(row, column), textAt(row, column)) === period)
+      .map((row) => textAt(row, column))
+      // Some source rows carry a copied sequence such as “截止21号” …
+      // “截止61号” even though the actual September snapshot is cutoff 20.
+      // Ignore impossible calendar days and retain valid source labels.
+      .filter((label) => {
+        const match = String(label).match(/截[至止]\s*[:：]?\s*(?:(20\d{2})\s*(?:年|[-/.])\s*)?(?:(\d{1,2})\s*(?:月|[-/.])\s*)?(\d{1,2})(?:\s*[日号]|(?=\s|[）)]|$))/);
+        if (!match) return true;
+        const monthMatch = String(period).match(/-(\d{2})$/);
+        const yearMatch = String(period).match(/^(20\d{2})-/);
+        const year = Number(match[1] || yearMatch?.[1]);
+        const month = Number(match[2] || monthMatch?.[1]);
+        const day = Number(match[3]);
+        const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+        return day >= 1 && day <= lastDay;
+      });
+    // A copied source block can contain several otherwise-valid cutoff days
+    // (for example 20 through 30). Use the earliest valid snapshot for that
+    // month; it is the actual reporting cutoff and avoids mixing snapshots.
+    const cutoffDays = labels.map((label) => {
+      const match = String(label).match(/截[至止]\s*[:：]?\s*(?:(20\d{2})\s*(?:年|[-/.])\s*)?(?:(\d{1,2})\s*(?:月|[-/.])\s*)?(\d{1,2})(?:\s*[日号]|(?=\s|[）)]|$))/);
+      return match ? Number(match[3]) : null;
+    }).filter((day) => Number.isFinite(day));
+    if (cutoffDays.length) {
+      const earliest = Math.min(...cutoffDays);
+      labels = labels.filter((label) => {
+        const match = String(label).match(/截[至止]\s*[:：]?\s*(?:(20\d{2})\s*(?:年|[-/.])\s*)?(?:(\d{1,2})\s*(?:月|[-/.])\s*)?(\d{1,2})(?:\s*[日号]|(?=\s|[）)]|$))/);
+        return !match || Number(match[3]) === earliest;
+      });
+    }
+    return [period, monthCutoff(period, labels)];
+  }));
+  return { latestPeriod, cutoff: cutoffs[latestPeriod], periods: cutoffs };
 }
 
 const periodSort = (a, b) => String(a).localeCompare(String(b), 'en', { numeric: true });
@@ -249,6 +275,7 @@ const output = {
   productMap: productRows,
   actuals,
   targets,
+  inventory,
   coverage: {
     pm: { month: monthlyCoverage('pm', actuals.pm.month) },
     lx: { month: monthlyCoverage('lx', actuals.lx.month) },
@@ -257,6 +284,7 @@ const output = {
     productRows: productRows.length,
     actuals: { pm: { month: summarize(actuals.pm.month), week: summarize(actuals.pm.week) }, lx: { month: summarize(actuals.lx.month), week: summarize(actuals.lx.week) } },
     targets: summarize(targets),
+    inventory: inventory.audit,
   },
 };
 

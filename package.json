@@ -5,10 +5,14 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
+    "start:po3": "node po3-weekly-server.mjs",
     "refresh": "node refresh-data.mjs --trigger manual",
     "check": "node --check server.mjs && node --check refresh-data.mjs && node --check extract-one.mjs && node --check build-data.mjs && node --check dashboard-runtime.js"
   },
   "engines": {
     "node": ">=22"
+  },
+  "dependencies": {
+    "@vercel/blob": "^1.1.1"
   }
 }
