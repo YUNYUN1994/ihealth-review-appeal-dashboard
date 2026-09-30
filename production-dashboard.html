@@ -421,10 +421,18 @@
         script.onerror = reject;
         document.head.appendChild(script);
       });
+      const isValidData = (data) => Boolean(
+        data && Array.isArray(data.productMap) && data.productMap.length > 0
+        && data.actuals && ['pm', 'lx'].some((dimension) =>
+          ['month', 'week'].some((grain) => Array.isArray(data.actuals?.[dimension]?.[grain]) && data.actuals[dimension][grain].length > 0)
+        )
+      );
       try {
         const response = await withTimeout(fetch('/api/data', { cache: 'no-store' }), 15000);
         if (!response.ok) throw new Error(`生产数据接口返回 ${response.status}`);
-        window.AMAZON_DATA = await response.json();
+        const data = await response.json();
+        if (!isValidData(data)) throw new Error('生产数据接口返回的数据不完整');
+        window.AMAZON_DATA = data;
       } catch (error) {
         console.warn('生产数据接口暂不可用，使用仓库内最近一次发布数据：', error);
         try {

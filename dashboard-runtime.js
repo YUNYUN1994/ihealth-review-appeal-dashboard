@@ -377,10 +377,12 @@
     const availability = years.length ? `${state.dimension === 'pm' ? 'PM' : '领星'}${GRAIN_LABELS[state.grain]}源表年份：${years.join('、')}` : `${state.dimension === 'pm' ? 'PM' : '领星'}${GRAIN_LABELS[state.grain]}源表暂无记录`;
     const comparisonNote = state.grain === 'week' ? '' : '月、季、年的同比使用同一数据维度的上年同期记录；未结束周期按已发生时间外推完整周期后比较。';
     $('.source-strip small').textContent = `${availability}；当前选择${cutoffLabel()}。实际数据按飞书源表原记录展示；月度、周度不互相推算，季度和年度只汇总月度实际数据。${comparisonNote}完成进度仅在 2026 年且目标表有对应目标时显示。`;
-    $('#categorySub').textContent = state.grain === 'week'
+    const categorySub = $('#categorySub');
+    if (categorySub) categorySub.textContent = state.grain === 'week'
       ? '按硬件与试剂盒同时展示当前周实际数据'
       : '按硬件与试剂盒同时展示；有上年同期数据时展示同比，未结束周期按时间比例预测';
     const notice = $('#comparisonNotice');
+    if (!notice) return;
     notice.hidden = true;
     notice.textContent = '';
     if (state.grain !== 'week' && state.period) {
@@ -996,6 +998,7 @@
   const annualProductState = { dimension: 'pm', grain: 'year', line: '', sku: '', lifecycle: '' };
   const annualProductDraft = { ...annualProductState };
   function renderAnnualProduct() {
+    if (!$('#annualProductHead') || !$('#annualProductBody')) return;
     const sourceGrain = annualProductState.grain === 'year' ? 'month' : annualProductState.grain;
     const rows = DATA.actuals?.[annualProductState.dimension]?.[sourceGrain] || [];
     const products = DATA.productMap || [];

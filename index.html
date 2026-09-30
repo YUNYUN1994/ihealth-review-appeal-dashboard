@@ -32,6 +32,8 @@
     select:focus,input[type=text]:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(15,157,138,.12)}
     .seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}.seg button{border:0;background:#fff;color:var(--muted);padding:8px 14px}.seg button+button{border-left:1px solid var(--line)}.seg button.active{background:var(--navy);color:#fff}
     .spacer{flex:1}
+    .comparison-notice{margin-bottom:16px;padding:12px 16px;border:1px solid #d7e3f7;border-radius:10px;background:#f1f6ff;color:#365373;font-size:12px;line-height:1.7}
+    .comparison-notice[hidden]{display:none}
     .kpis{display:grid;grid-template-columns:repeat(9,minmax(120px,1fr));gap:10px;margin-bottom:18px}
     .kpi{background:var(--card);border:1px solid var(--line);border-top:3px solid var(--teal);padding:13px 14px;min-height:104px;box-shadow:0 4px 12px rgba(16,42,67,.045)}
     .kpi:nth-child(2){border-top-color:var(--cyan)}.kpi:nth-child(3){border-top-color:#567da5}.kpi:nth-child(4){border-top-color:var(--amber)}.kpi:nth-child(5){border-top-color:var(--teal)}.kpi:nth-child(6){border-top-color:var(--coral)}.kpi:nth-child(7){border-top-color:#657ca8}.kpi:nth-child(8){border-top-color:#9a7a3a}
@@ -43,7 +45,7 @@
     .panel{background:var(--card);border:1px solid var(--line);border-radius:9px;box-shadow:var(--shadow);padding:18px;min-width:0}
     .panel h2{font-size:16px;margin:0 0 3px;font-weight:800}.panel-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}.panel-sub{font-size:12px;color:var(--muted)}
     .trend-wrap{height:270px;position:relative}.trend-wrap svg{width:100%;height:100%;overflow:visible}.axis{font-size:11px;fill:#8293a7}.gridline{stroke:#e9eef3;stroke-width:1}.trend-line{fill:none;stroke:var(--teal);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.trend-area{fill:url(#areaFill)}.point{fill:#fff;stroke:var(--teal);stroke-width:2}.point-label{font-size:10px;fill:var(--ink);font-weight:700}.trend-hit{fill:transparent;cursor:crosshair}
-    .legend{display:flex;gap:12px;align-items:center;font-size:11px;color:var(--muted)}.legend i{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--teal);margin-right:4px}.legend i.forecast{background:#7e57c2}.legend i.target{background:var(--amber)}
+    .legend{display:flex;gap:12px;align-items:center;font-size:11px;color:var(--muted)}.legend i{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--teal);margin-right:4px}.legend i.target{background:var(--amber)}
     .donut-row{display:flex;align-items:center;gap:20px;min-height:250px}.donut{width:184px;height:184px;border-radius:50%;position:relative;flex:0 0 auto}.donut:after{content:"";position:absolute;inset:38px;background:#fff;border-radius:50%;box-shadow:inset 0 0 0 1px #eef2f6}.donut-overlay{position:absolute;inset:0;width:100%;height:100%;z-index:2}.donut-overlay path{fill:transparent;cursor:pointer;transition:fill .15s}.donut-overlay path:hover{fill:rgba(255,255,255,.16)}.donut-center{position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;flex-direction:column}.donut-center strong{font-size:24px}.donut-center span{font-size:11px;color:var(--muted)}.legend-list{display:grid;gap:11px;flex:1}.legend-item{display:flex;align-items:center;gap:8px;cursor:default}.legend-item .dot{width:10px;height:10px;border-radius:3px;flex:0 0 auto}.legend-item .name{flex:1}.legend-item .value{font-weight:800}.legend-item .pct{font-size:11px;color:var(--muted);width:42px;text-align:right}
     .progress-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.progress-card{border:1px solid var(--line);padding:14px;border-radius:7px;background:#fbfcfd}.progress-card h3{font-size:12px;color:var(--muted);margin:0 0 8px}.progress-number{font-size:25px;font-weight:800;margin-bottom:7px}.progress-bar{height:9px;background:#e8edf2;border-radius:99px;overflow:hidden;cursor:help}.progress-fill{height:100%;border-radius:99px;background:var(--teal);transition:width .25s}.progress-fill.warn{background:var(--amber)}.progress-fill.over{background:var(--coral)}.progress-foot{display:flex;justify-content:space-between;gap:6px;color:var(--muted);font-size:11px;margin-top:7px}.progress-unavailable{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);color:var(--muted);font-size:11px}.progress-gap{font-size:11px;font-weight:700;margin-top:7px}.progress-gap.ahead{color:var(--green)}.progress-gap.behind{color:var(--coral)}
     .table-panel{margin-top:16px}.table-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.table-tools input{min-width:220px}.count{color:var(--muted);font-size:12px;margin-left:auto}.table-scroll{overflow:auto;max-height:560px;border:1px solid var(--line);border-radius:6px}table{width:100%;border-collapse:separate;border-spacing:0;min-width:1050px;font-size:12px}th,td{padding:10px 11px;border-bottom:1px solid #edf1f5;text-align:right;white-space:nowrap}th{position:sticky;top:0;background:#f5f8fa;color:#536b82;font-size:11px;z-index:2}th:first-child,td:first-child{text-align:left;position:sticky;left:0;z-index:1;background:#fff}th:first-child{z-index:3;background:#f5f8fa}tbody tr:hover td{background:#f1f8f7}tbody tr:hover td:first-child{background:#eaf5f3}.negative{color:var(--red)}.positive{color:var(--green)}.pill{display:inline-flex;align-items:center;padding:3px 7px;border-radius:999px;font-size:11px;background:#eef5f7;color:#4c6a78}.pill.new{background:#fff3df;color:#96610d}.pill.old{background:#eaf5f3;color:#176a5d}.pill.test{background:#f1edfb;color:#67518e}
@@ -106,7 +108,7 @@
     .overview-card{border:1px solid #e1e5eb;border-left:0;border-radius:10px;background:#f8fafd;padding:12px;min-height:88px}
     .overview-label{font-size:11px;color:#5f6368}.overview-value{font-size:18px;margin-top:7px;color:#202124}
     .layout{gap:18px;margin-bottom:18px}
-    .trend-wrap{height:300px}.trend-line{stroke:var(--navy);stroke-width:3}.point{stroke:var(--navy)}.forecast-line{stroke:#7e57c2;stroke-width:2;stroke-dasharray:5 4}.forecast-point{fill:#fff;stroke:#7e57c2;stroke-width:3}.trend-value-label{font-size:10px;fill:var(--navy);font-weight:800;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}.trend-value-label.forecast{fill:#673ab7}.gridline{stroke:#e8eaed}
+    .trend-wrap{height:300px}.trend-line{stroke:var(--navy);stroke-width:3}.point{stroke:var(--navy)}.trend-value-label{font-size:10px;fill:var(--navy);font-weight:800;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}.gridline{stroke:#e8eaed}
     .legend i{background:var(--navy)}
     .progress-grid{gap:12px}.progress-card{border:1px solid #dfe3eb;border-radius:12px;background:#f8fafd;padding:16px}.progress-number{font-size:29px;color:#202124}.progress-bar{height:10px;background:#e8eaed}.progress-fill{background:var(--navy)}.progress-fill.warn{background:var(--amber)}.progress-fill.over{background:var(--coral)}
     .table-panel{margin-top:18px}.table-tools{gap:10px;margin-bottom:14px}.table-tools input{min-width:250px}
@@ -119,6 +121,150 @@
     @media (max-width:820px){#categoryOverview{grid-template-columns:1fr}.category-block:first-child{grid-column:auto}}
     @media (max-width:700px){.app{padding:18px 12px 42px}.topbar{padding-bottom:16px}.controlbar{padding:10px 12px}.controlbar.drawer-open{top:12px;right:12px;left:12px;width:auto;max-height:calc(100vh - 24px);border-radius:16px}.filter-fab{right:16px;bottom:16px}.kpis{width:100%;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.kpi{min-height:112px;padding:14px}.kpi-value{font-size:18px}.panel{padding:16px;border-radius:12px}.category-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}#categoryOverview{display:grid;grid-template-columns:1fr}.overview-card{min-height:82px}.overview-value{font-size:16px}.trend-wrap{height:250px}.progress-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.progress-card{padding:13px}.refresh-status{width:100%;margin-left:0;white-space:normal}.table-panel .panel-head{display:block}.table-panel #detailSeg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;margin-top:13px}.table-panel #detailSeg button{min-width:0;padding:8px 5px;white-space:nowrap}.table-time-progress{display:grid;grid-template-columns:1fr;gap:7px}.table-time-item{grid-template-columns:auto auto minmax(72px,1fr)}.table-time-item+.table-time-item{padding-left:0;border-left:0}.table-time-track{width:100%}.table-tools input{min-width:100%;width:100%}}
     @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+    /* Goal completion: separate periods and compare each result with elapsed time. */
+    .goal-panel>.panel-head{flex-wrap:wrap;gap:8px 20px;margin-bottom:22px}
+    .goal-panel #progressDate{max-width:100%;line-height:1.65}
+    #progressGrid{display:block;min-width:0}
+    .goal-period+.goal-period{border-top:1px solid #e3e7ed;margin-top:24px;padding-top:22px}
+    .goal-period-head{display:flex;align-items:center;justify-content:space-between;gap:10px 18px;margin-bottom:14px}
+    .goal-period-head h3{margin:0;color:#202124;font-size:17px;font-weight:800}
+    .goal-period-sub{margin:4px 0 0;color:#70757a;font-size:12px;line-height:1.5}
+    .goal-time{display:inline-flex;flex-shrink:0;align-items:center;gap:7px;padding:8px 12px;border:1px solid #dfe3eb;border-radius:8px;background:#f8fafd;color:#5f6368;font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+    .goal-time i{display:inline-block;width:3px;height:15px;border-radius:2px;background:#344054}
+    .goal-time b{font-size:16px;color:#344054}
+    .goal-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .goal-card{--goal-color:#0b57d0;--goal-soft:#e8f0fe;--goal-ink:#174ea6;min-width:0;padding:16px 18px;background:#fff;border:1px solid #dfe3eb;border-radius:12px;font-variant-numeric:tabular-nums}
+    .goal-card.warning{--goal-color:#d99422;--goal-soft:#fff4df;--goal-ink:#915c06}
+    .goal-card.behind{--goal-color:#d54545;--goal-soft:#fce8e6;--goal-ink:#b3261e}
+    .goal-card.ahead{--goal-color:#16856b;--goal-soft:#e6f4ed;--goal-ink:#146b4d}
+    .goal-card.no-target,.goal-card.ontrack,.goal-card.neutral{--goal-color:#8b929c;--goal-soft:#f1f3f4;--goal-ink:#5f6368}
+    .pill.pace-ahead{background:#e6f4ed;color:#146b4d}
+    .pill.pace-warning{background:#fff4df;color:#915c06}
+    .pill.pace-behind{background:#fce8e6;color:#b3261e}
+    .pill.pace-neutral{background:#f1f3f4;color:#5f6368}
+    .completion-legend{display:flex;gap:6px 16px;flex-wrap:wrap;margin-top:10px;color:#70757a;font-size:11px;line-height:1.5}
+    .completion-legend[hidden]{display:none}
+    .completion-legend span{display:inline-flex;align-items:center;gap:5px}
+    .completion-legend i{display:inline-block;width:7px;height:7px;border-radius:2px;flex-shrink:0}
+    .completion-legend .pace-ahead{background:#16856b}
+    .completion-legend .pace-warning{background:#d99422}
+    .completion-legend .pace-behind{background:#d54545}
+    .goal-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+    .goal-card-head h4{margin:0;font-size:14px;color:#344054;font-weight:700}
+    .goal-status{display:inline-flex;align-items:center;padding:3px 8px;border-radius:5px;background:var(--goal-soft);color:var(--goal-ink);font-size:11px;font-weight:700;line-height:1.5}
+    .goal-value{display:flex;align-items:baseline;gap:9px;margin:9px 0 16px;font-size:34px;line-height:1.1;font-weight:800;letter-spacing:-.6px;color:#202124}
+    .goal-value small{font-size:11px;font-weight:500;color:#70757a;letter-spacing:0}
+    .goal-bar{position:relative;height:10px;cursor:help}
+    .goal-track{height:100%;overflow:hidden;background:#edf0f3;border-radius:99px}
+    .goal-fill{height:100%;border-radius:99px;background:var(--goal-color);transition:width .25s}
+    .goal-time-marker{position:absolute;top:-5px;width:3px;height:20px;background:#344054;border-radius:2px;transform:translateX(-50%);box-shadow:0 0 0 2px #fff;pointer-events:none}
+    .goal-scale{display:flex;justify-content:space-between;gap:8px;margin-top:9px;color:#70757a;font-size:11px}
+    .goal-scale span:first-child{color:#344054}
+    .goal-amounts{margin:13px 0 0;display:grid;gap:6px}
+    .goal-amounts>div{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+    .goal-amounts dt{font-size:12px;color:#70757a}
+    .goal-amounts dd{margin:0;color:#344054;font-size:16px;font-weight:600;line-height:1.3;overflow-wrap:anywhere}
+    .goal-remaining{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid #edf0f3;color:#70757a;font-size:12px}
+    .goal-remaining b,.goal-remaining strong{font-size:14px;color:var(--goal-ink);font-weight:700;overflow-wrap:anywhere}
+    .goal-no-target{margin:16px 0;color:#70757a;font-size:12px;line-height:1.7}
+    .goal-notice{margin:0 0 18px;padding:12px 14px;border:1px solid #dbe6f7;border-radius:10px;background:#f5f8ff;color:#3c5f9b;font-size:12px;line-height:1.65}
+    @media (max-width:1050px){.goal-cards{gap:10px}.goal-card{padding:15px 13px}.goal-value{font-size:30px}.goal-amounts dd{font-size:14px}.goal-remaining b,.goal-remaining strong{font-size:13px}}
+    @media (max-width:760px){.goal-panel>.panel-head{margin-bottom:18px}.goal-period-head{align-items:flex-start;flex-wrap:wrap}.goal-period-head h3{font-size:16px}.goal-period-sub{font-size:11px}.goal-time{padding:6px 9px;font-size:11px}.goal-time b{font-size:14px}.goal-cards{grid-template-columns:minmax(0,1fr);gap:12px}.goal-card{padding:16px}.goal-value{font-size:32px}.goal-amounts dd{font-size:16px}.goal-remaining b,.goal-remaining strong{font-size:14px}.goal-period+.goal-period{margin-top:22px;padding-top:20px}}
+    .inventory-panel{margin-top:18px}
+    .inventory-panel>.panel-head{gap:12px 20px;flex-wrap:wrap;margin-bottom:10px}
+    .inventory-panel .panel-sub{margin:4px 0 0;line-height:1.7}
+    .inventory-count{font-size:12px;color:#5f6368;padding-top:5px;font-variant-numeric:tabular-nums}
+    .inventory-meta{margin:0 0 16px;color:#5f6368;font-size:12px;line-height:1.7}
+    .inventory-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+    .inventory-stat{min-width:0;padding:15px 16px;border:1px solid #dfe3eb;border-radius:12px;background:#f8fafd;font-variant-numeric:tabular-nums}
+    .inventory-stat span{display:block;font-size:12px;color:#5f6368;font-weight:700}
+    .inventory-stat strong{display:block;margin:7px 0 4px;font-size:27px;line-height:1.2;color:#202124;overflow-wrap:anywhere}
+    .inventory-stat small{display:block;font-size:11px;color:#70757a;line-height:1.6}
+    .inventory-tools{display:flex;align-items:end;gap:10px 12px;flex-wrap:wrap;margin-bottom:14px}
+    .inventory-tools label{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:11px;font-weight:700;color:#5f6368}
+    .inventory-tools input,.inventory-tools select{font-size:12px;font-weight:400;max-width:100%}
+    .inventory-tools input{min-width:220px}
+    .inventory-legend{display:grid;gap:8px;margin:0 0 14px;font-size:11px;color:#5f6368}
+    .inventory-legend-row{display:flex;align-items:center;gap:8px 18px;flex-wrap:wrap}
+    .inventory-legend-label{font-weight:700;color:#344054}
+    .inventory-legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+    .inventory-legend i{display:inline-block;width:9px;height:9px;border-radius:50%;background:#137333}
+    .inventory-legend i.yellow{background:#c89600}.inventory-legend i.orange{background:#e8710a}.inventory-legend i.red{background:#c5221f}
+    .inventory-alert{margin:0 0 14px;padding:10px 13px;border:1px solid #ead7a2;border-radius:9px;background:#fffbef;color:#795600;font-size:12px;line-height:1.7}
+    .inventory-alert[hidden]{display:none}
+    .inventory-table-scroll{max-height:590px}
+    .inventory-table-scroll table{min-width:2780px;font-variant-numeric:tabular-nums}
+    .inventory-table-scroll th{line-height:1.5;padding-top:12px;padding-bottom:12px}
+    .inventory-sort{display:inline-flex;align-items:center;justify-content:flex-end;gap:5px;max-width:100%;margin:0;padding:3px 0;border:0;border-radius:4px;background:transparent;color:inherit;font:inherit;font-weight:700;line-height:inherit;white-space:nowrap;cursor:pointer}
+    .inventory-sort:hover{color:#0b57d0}.inventory-sort:focus-visible{outline:2px solid #0b57d0;outline-offset:3px}
+    .inventory-sort-arrow{min-width:9px;font-size:12px;line-height:1;opacity:.55}
+    .inventory-table-scroll th[aria-sort="ascending"],.inventory-table-scroll th[aria-sort="descending"]{background:#e8f0fe;color:#174ea6}
+    .inventory-table-scroll th[aria-sort="ascending"] .inventory-sort-arrow,.inventory-table-scroll th[aria-sort="descending"] .inventory-sort-arrow{opacity:1}
+    .inventory-sort-hint{margin:0 0 10px;color:#70757a;font-size:11px;line-height:1.6}
+    .inventory-table-scroll td{padding-top:13px;padding-bottom:13px;vertical-align:middle}
+    .inventory-table-scroll th:nth-child(2),.inventory-table-scroll td:nth-child(2),.inventory-table-scroll th:nth-child(3),.inventory-table-scroll td:nth-child(3){text-align:left}
+    .inventory-table-scroll td:nth-child(2){font-weight:700;color:#344054}
+    .inventory-product{max-width:230px;white-space:normal;line-height:1.5;font-weight:600;color:#344054;overflow-wrap:anywhere}
+    .inventory-note{display:block;max-width:240px;margin-top:4px;white-space:normal;line-height:1.5;font-size:11px;font-weight:400;color:#70757a;overflow-wrap:anywhere}
+    .inventory-weeks{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:76px;padding:5px 9px;border-radius:7px;font-size:12px;font-weight:700;line-height:1.3;white-space:nowrap}
+    .inventory-risk-label{font-size:10px;font-weight:600;line-height:1.2;opacity:.82}
+    .inventory-weeks.green{background:#e6f4ea;color:#137333}.inventory-weeks.yellow{background:#fff8d7;color:#816200}.inventory-weeks.orange{background:#fff0e0;color:#ae4b00}.inventory-weeks.red{background:#fce8e6;color:#b3261e}.inventory-weeks.neutral{background:#f1f3f4;color:#5f6368}
+    .inventory-replenishment{display:inline-flex;flex-direction:column;align-items:flex-start;justify-content:center;min-width:140px;padding:6px 9px;border-radius:7px;font-size:12px;font-weight:700;line-height:1.35;white-space:nowrap}.inventory-replenishment small{font-size:10px;font-weight:500;color:inherit;opacity:.8}.inventory-replenishment.warning{background:#fff8d7;color:#816200}.inventory-replenishment.ok{background:#e6f4ea;color:#137333}.inventory-replenishment.neutral{background:#f1f3f4;color:#5f6368}
+    .inventory-table-scroll td.inventory-empty{padding:32px 16px;text-align:center;color:#70757a;font-weight:400;white-space:normal}
+    .inventory-method{margin-top:14px;font-size:12px;color:#5f6368;line-height:1.8}
+    .inventory-method summary{width:fit-content;cursor:pointer;color:#3c5f9b;font-weight:700;padding:3px 0}
+    .inventory-method ul{margin:9px 0 0;padding-left:20px}.inventory-method li+li{margin-top:3px}
+    .inventory-method code{font-family:inherit;font-size:11px;background:#f1f3f4;padding:1px 4px;border-radius:3px;overflow-wrap:anywhere}
+    @media (max-width:1000px){.inventory-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:700px){.inventory-summary{gap:10px}.inventory-stat{padding:13px 12px}.inventory-stat strong{font-size:22px}.inventory-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.inventory-tools label:first-child{grid-column:1/-1}.inventory-tools input{min-width:0;width:100%}.inventory-tools select{width:100%;min-width:0}.inventory-tools label:last-child{grid-column:1/-1}.inventory-legend{gap:8px 12px}.inventory-meta{font-size:11px}.inventory-table-scroll{max-height:480px}}
+    /* Material 3 refinement: adaptive breakpoints, surface hierarchy, and stable numeric alignment. */
+    .source-strip{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center;column-gap:12px;row-gap:7px;padding:12px 16px}
+    .source-strip small{grid-column:1/-1;display:block;max-width:1180px;line-height:1.65}
+    .source-strip .refresh-status{justify-self:end}
+    .controlbar{display:grid;grid-template-columns:auto auto repeat(4,minmax(135px,1fr));align-items:center;gap:12px;padding:13px 16px}
+    .control-group{min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px}
+    .control-group>label{min-width:max-content}
+    .control-group select,.control-group .seg{min-width:0;width:100%}
+    .control-group .seg{justify-content:center}
+    .kpis{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:22px}
+    .kpi{min-height:132px;padding:18px 19px}
+    .kpi-label{letter-spacing:.01em}
+    .kpi-value{font-size:22px;letter-spacing:-.2px}
+    .category-panel,.layout,.goal-panel,.table-panel,.inventory-panel{scroll-margin-top:16px}
+    .panel-head{align-items:center}
+    .panel h2{letter-spacing:-.01em}
+    .category-block{box-shadow:0 1px 2px rgba(60,64,67,.04)}
+    .overview-value,.goal-value,.progress-number,.kpi-value,td,.inventory-stat{font-variant-numeric:tabular-nums lining-nums}
+    .table-tools input{flex:1 1 270px}
+    .table-tools select{min-width:140px}
+    .table-scroll{scrollbar-color:#aeb8c5 #f1f3f4;scrollbar-width:thin}
+    th{letter-spacing:.01em}
+    tbody tr:focus-within td{background:#e8f0fe}
+    .inventory-sort-hint{padding-left:2px}
+    @media (max-width:1200px){
+      .controlbar{grid-template-columns:repeat(3,minmax(0,1fr))}
+      .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+    }
+    @media (max-width:820px){
+      .source-strip{grid-template-columns:auto auto;align-items:start}
+      .source-strip .refresh-status{grid-column:1/-1;justify-self:start}
+      .controlbar{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .control-group{grid-template-columns:1fr;align-items:start;gap:5px}
+      .control-group>label{min-width:0}
+    }
+    @media (max-width:700px){
+      .app{padding-top:20px}
+      .source-strip{grid-template-columns:1fr;padding:12px 14px}
+      .source-strip .refresh-status{grid-column:auto;width:100%;justify-self:stretch}
+      .controlbar{grid-template-columns:1fr;gap:11px}
+      .control-group{grid-template-columns:auto minmax(0,1fr);align-items:center}
+      .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+      .kpi{min-height:116px;padding:14px}
+      .kpi-value{font-size:19px}
+      .table-tools select{min-width:0;flex:1 1 140px}
+    }
+    @media (prefers-reduced-motion:reduce){.kpi,.panel,.btn,.seg button{transition:none!important}}
   </style>
 </head>
 <body>
@@ -146,8 +292,8 @@
 
     <section class="controlbar" id="controlbar" aria-label="筛选条件">
       <div class="controlbar-head"><span>筛选条件</span><button class="filter-close" id="filterClose" type="button" aria-label="关闭筛选">×</button></div>
-      <div class="control-group"><label>数据维度</label><div class="seg" id="dimensionSeg"><button data-value="lx" class="active">领星</button><button data-value="pm">PM</button></div></div>
-      <div class="control-group"><label>时间粒度</label><div class="seg" id="grainSeg"><button data-value="month" class="active">月</button><button data-value="quarter">季</button><button data-value="week">周</button><button data-value="year">年</button></div></div>
+      <div class="control-group"><label>数据维度</label><div class="seg" id="dimensionSeg"><button data-value="lx" class="active" aria-pressed="true">领星</button><button data-value="pm" aria-pressed="false">PM</button></div></div>
+      <div class="control-group"><label>时间粒度</label><div class="seg" id="grainSeg"><button data-value="month" class="active" aria-pressed="true">月</button><button data-value="quarter" aria-pressed="false">季</button><button data-value="week" aria-pressed="false">周</button><button data-value="year" aria-pressed="false">年</button></div></div>
       <div class="control-group"><label>年份</label><select id="yearSelect"><option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option></select></div>
       <div class="control-group"><label>时间范围</label><select id="periodSelect"></select></div>
       <div class="control-group"><label>分类维度</label><select id="groupSelect"><option value="line">产品线</option><option value="lifecycle">新老品</option><option value="type">硬件 / 测试盒</option><option value="owner">归属</option><option value="sku">SKU</option></select></div>
@@ -156,16 +302,17 @@
     <button class="filter-fab" id="filterFab" type="button" title="打开筛选面板" aria-controls="controlbar" aria-expanded="false"><span aria-hidden="true">☷</span>筛选</button>
     <div class="filter-backdrop" id="filterBackdrop"></div>
 
+    <div class="comparison-notice" id="comparisonNotice" role="status" hidden></div>
     <section class="kpis" id="kpiGrid"></section>
 
     <section class="panel category-panel">
-      <div class="panel-head"><div><h2>分类总览</h2><div class="panel-sub">按硬件与试剂盒同时展示；完整周期显示同比，未结束周期显示同比预测</div></div><div class="panel-sub" id="categoryCaption"></div></div>
+      <div class="panel-head"><div><h2>分类总览</h2><div class="panel-sub" id="categorySub">按硬件与试剂盒同时展示；月、季、年有同期数据时展示同比</div></div><div class="panel-sub" id="categoryCaption"></div></div>
       <div id="categoryOverview"></div>
     </section>
 
     <section class="layout">
       <article class="panel">
-        <div class="panel-head"><div><h2 id="trendTitle">销售额趋势</h2><div class="panel-sub" id="trendSub">按月汇总，支持切换主指标</div></div><div class="legend"><span><i></i>实际</span><span id="trendForecastLegend"><i class="forecast"></i>预期</span><span id="trendTargetLegend"><i class="target"></i>目标</span></div></div>
+        <div class="panel-head"><div><h2 id="trendTitle">销售额趋势</h2><div class="panel-sub" id="trendSub">按月汇总，支持切换主指标</div></div><div class="legend"><span><i></i>实际</span><span id="trendTargetLegend"><i class="target"></i>目标</span></div></div>
         <div class="trend-wrap" id="trendChart"></div>
       </article>
       <article class="panel">
@@ -174,22 +321,92 @@
       </article>
     </section>
 
-    <section class="panel">
-      <div class="panel-head"><div><h2>目标完成进度</h2><div class="panel-sub">完成度按硬件目标口径计算，试剂盒不纳入实际完成值；月度显示当前筛选范围，年度累计只使用源表提供的真实目标。2023–2025 年只保留实际结果，不计算完成度</div></div><div class="panel-sub" id="progressDate"></div></div>
+    <section class="panel goal-panel">
+      <div class="panel-head"><div><h2>目标完成进度</h2><div class="panel-sub">仅计算硬件，试剂盒不纳入完成度；进度条上的竖线表示时间进度。</div><div class="completion-legend"><span><i class="pace-ahead" aria-hidden="true"></i>达到时间进度</span><span><i class="pace-warning" aria-hidden="true"></i>落后 ≤5 个百分点</span><span><i class="pace-behind" aria-hidden="true"></i>落后 &gt;5 个百分点</span></div></div><div class="panel-sub" id="progressDate"></div></div>
       <div class="progress-grid" id="progressGrid"></div>
     </section>
 
     <section class="panel table-panel">
-      <div class="panel-head"><div class="table-head-copy"><h2 id="tableTitle">SKU 明细</h2><div class="panel-sub" id="tableSub">可切换 SKU 明细、产品线明细或新老品汇总，表格支持搜索和导出</div><div class="table-time-progress" id="tableTimeProgress"></div></div><div class="seg" id="detailSeg"><button data-value="sku" class="active">SKU 明细</button><button data-value="line">产品线明细</button><button data-value="group">新老品汇总</button></div></div>
+      <div class="panel-head"><div class="table-head-copy"><h2 id="tableTitle">SKU 明细</h2><div class="panel-sub" id="tableSub">可切换 SKU 明细、产品线明细或新老品汇总，表格支持搜索和导出</div><div class="table-time-progress" id="tableTimeProgress"></div><div class="completion-legend" id="completionLegend" hidden><span><i class="pace-ahead" aria-hidden="true"></i>达到时间进度</span><span><i class="pace-warning" aria-hidden="true"></i>落后 ≤5 个百分点</span><span><i class="pace-behind" aria-hidden="true"></i>落后 &gt;5 个百分点</span></div></div><div class="seg" id="detailSeg"><button data-value="sku" class="active" aria-pressed="true">SKU 明细</button><button data-value="line" aria-pressed="false">产品线明细</button><button data-value="group" aria-pressed="false">新老品汇总</button></div></div>
       <div class="table-tools"><input id="searchInput" type="text" placeholder="搜索 SKU、产品线或归属..." /><select id="lineFilter"><option value="">全部产品线</option></select><select id="lifeFilter"><option value="">全部新老品</option><option>新品</option><option>老品</option></select><select id="typeFilter"><option value="">全部类型</option><option>硬件</option><option>测试盒</option></select><select id="ownerFilter"><option value="">全部归属</option></select><span class="count" id="rowCount"></span></div>
       <div class="table-scroll"><table><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table></div>
     </section>
+
+    <section class="panel inventory-panel" id="inventoryPanel">
+      <div class="panel-head"><div><h2>库存与可售周数</h2><p class="panel-sub" id="inventoryCaption">按 SKU 与 ASIN 对应产品，用最近四周的平均日销计算所有库存可售周数，同时保留最近两周销量观察趋势。</p></div><span class="inventory-count" id="inventoryCount"></span></div>
+      <p class="inventory-meta" id="inventoryMeta"></p>
+      <div class="inventory-summary" id="inventorySummary"></div>
+      <div class="inventory-tools">
+        <label>搜索产品<input id="inventorySearch" type="text" placeholder="搜索 SKU、ASIN 或产品" /></label>
+        <label>产品线<select id="inventoryLineFilter"><option value="">全部产品线</option></select></label>
+        <label>产品类型<select id="inventoryTypeFilter"><option value="">全部类型</option><option value="硬件">硬件</option><option value="测试盒">试剂盒</option><option value="未匹配">未匹配</option></select></label>
+        <label>库存状态<select id="inventoryRiskFilter"><option value="">全部库存状态</option><option value="green">正常 / 达标</option><option value="yellow">预警</option><option value="orange">偏高</option><option value="red">高库存 / 未达标</option><option value="neutral">待核实</option></select></label>
+        <label>库存状态依据<select id="inventoryCoverBasis"><option value="availableWeeks">可售库存周数</option><option value="reservedWeeks">可售+预留周数</option><option value="totalWeeks" selected>FBA 总库存周数</option><option value="usLocalWeeks">美国本地库存周数</option><option value="endToEndWeeks">全链条库存周数</option></select></label>
+      </div>
+      <div class="inventory-legend" id="inventoryLegend" aria-label="各类库存可售周数颜色说明"></div>
+      <p class="inventory-alert" id="inventoryAlert" hidden></p>
+      <p class="inventory-sort-hint">点击表头排序，再次点击切换升序/降序</p>
+      <div class="table-scroll inventory-table-scroll"><table><thead><tr><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="sku"><span>产品</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="asin"><span>ASIN</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="line"><span>产品线</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="available"><span>可售库存</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="reserved"><span>预留库存</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="inbound"><span>FBA 在途</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="total"><span>FBA 总库存</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="warehouseExpected"><span>iHealth仓库-US<br>预计库存</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="oceanInTransit"><span>头程海上在途</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="factoryOpenOrders"><span>iHealth Open 订单-<br>工厂在执行订单</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="usLocal"><span>美国本地库存</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="endToEnd"><span>全链条库存</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="recentQty"><span>近 2 周销量</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="recent4Qty"><span>近 4 周销量</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="dailySales"><span>平均日销（2 周）</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="dailySales4"><span>平均日销（4 周）</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="availableWeeks"><span>可售周数</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="reservedWeeks"><span>可售+预留周数</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="descending"><button type="button" class="inventory-sort" data-inventory-sort="totalWeeks"><span>FBA 库存周数</span><span class="inventory-sort-arrow" aria-hidden="true">↓</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="usLocalWeeks"><span>美国本地库存周数</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="endToEndWeeks"><span>全链条库存周数</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th><th scope="col" aria-sort="none"><button type="button" class="inventory-sort" data-inventory-sort="replenishmentQty"><span>补货建议</span><span class="inventory-sort-arrow" aria-hidden="true">↕</span></button></th></tr></thead><tbody id="inventoryBody"></tbody></table></div>
+      <details class="inventory-method" id="inventoryDeduplication" hidden><summary id="inventoryDedupSummary">查看库存去重记录</summary><ul id="inventoryDedupDetails"></ul></details>
+      <details class="inventory-method"><summary>查看计算口径</summary><ul>
+        <li>指定 SKU 规则优先：B00J6P2KB2 只取 PO3-20151014；B0D3T1X1FS 只取 COV-FLU-4。该 ASIN 的其他库存 SKU 均排除，指定 SKU 缺失时更新报错并保留上次成功数据；周销量仍按 ASIN 汇总。</li>
+        <li>同时用库存表的 SKU 与 ASIN 对照产品，优先匹配两者一致的产品记录；SKU 无匹配时按 ASIN 对照，标识冲突时保留提示。</li>
+        <li>同一快照中，同一 ASIN 下先汇总每个 SKU 的库存；不同 SKU 的八项原始库存数量（五项 FBA 数量、iHealth 仓库-US 预计库存、头程海上在途、工厂执行订单）逐项相同只计一次，任一项不同则相加。库存空白按 0 比较，SKU、FNSKU 和非库存字段不参与数量比较。周销量仍按 ASIN 汇总。</li>
+        <li>可售库存 = <code>available</code>；预留库存 = <code>Reserved FC Processing</code> + <code>Reserved Staging</code>。</li>
+        <li>FBA 在途库存 = <code>inbound-received</code> + <code>no-sale-last-6-months</code>；FBA 总库存 = 可售库存 + 预留库存 + FBA 在途库存。</li>
+        <li>美国本地库存 = FBA 总库存 + <code>iHealth仓库-US 预计库存</code>；全链条库存 = 美国本地库存 + <code>头程海上在途</code> + <code>iHealth Open 订单-工厂在执行订单</code>。</li>
+        <li>平均日销（4 周）= 最近四周销量 ÷ 28；每种库存的可售周数 = 对应库存 ÷（平均日销（4 周）× 7）。可售、可售+预留、FBA、美国本地及全链条库存均使用这一口径。平均日销（2 周）= 最近两周销量 ÷ 14，用于趋势对比。两个销量窗口的具体日期见本板块上方。</li>
+        <li>库存数量空白按 0 计；最近四周不足四个连续完整周，或该 ASIN 缺少任意一周销量记录时不推算可售周数，也不改用两周计算。四周销量为零时显示“近四周无销量”；未匹配产品资料的 ASIN 仍保留库存。</li>
+        <li>可售、可售+预留及 FBA 库存周数：12 周及以下绿色，超过 12 至 20 周黄色，超过 20 至 24 周橙色，超过 24 周红色。</li>
+        <li>美国本地库存周数：18–20 周为健康（绿色），超过 24 周红色；低于 18 周或超过 20 至 24 周黄色。全链条库存周数：22–24 周为健康（绿色），超过 36 周红色；低于 22 周或超过 24 至 36 周黄色。无可计算周数时为灰色；筛选颜色按选中的库存状态依据判断。</li>
+        <li>试剂盒安全线独立计算：可售库存至少 8 周、可售+预留库存至少 12 周、FBA 总库存至少 16 周；可售库存 8–24 周为绿色，低于 8 周为红色，超过 24 周为黄色；可售+预留和 FBA 达到各自安全线为绿色，低于安全线为红色。</li>
+        <li>补货建议仅针对试剂盒。预测下周销量优先使用当前最近四周实际销量；有完整的历史同期四周数据时按当前 80% + 历史同期 20% 加权。建议补货量 = max(0，向上取整（预测下周销量 ×（12 周安全库存 + 提前 1 周）− 当前可售+预留库存））；销量不足时不虚构补货数量。</li>
+      </ul></details>
+    </section>
+
+    <section class="panel annual-product-panel" id="annualProductPanel"><div class="panel-head"><div><h2>产品历史对比</h2><div class="panel-sub">按产品线、SKU、新老品筛选，查看各年度截至源表截止日期的实际数据</div></div><div class="panel-sub" id="annualProductCaption"></div></div><div class="annual-product-tools"><label>数据维度<select id="annualProductDimension"><option value="pm">PM</option><option value="lx">领星</option></select></label><label>时间粒度<select id="annualProductGrain"><option value="year">年度</option><option value="month">月度</option><option value="week">周度</option></select></label><label>产品线<select id="annualProductLine"><option value="">全部产品线</option></select></label><label>SKU<select id="annualProductSku"><option value="">全部 SKU</option></select></label><label>新老品<select id="annualProductLifecycle"><option value="">全部</option><option value="新品">新品</option><option value="老品">老品</option></select></label><button class="btn primary annual-product-apply" id="annualProductApply" type="button">筛选</button></div><div class="annual-product-scroll"><table class="data-table annual-product-table"><thead id="annualProductHead"></thead><tbody id="annualProductBody"></tbody></table></div></section>
   </main>
   <div class="toast" id="toast"></div>
   <div class="chart-tooltip" id="chartTooltip" role="status" aria-live="polite"></div>
 
 
-  <script src="amazon-data.js"></script>
-  <script src="dashboard-runtime.js"></script>
+  <script>
+    (async function loadProductionDashboard() {
+      const withTimeout = (promise, ms) => new Promise((resolve, reject) => {
+        const timer = window.setTimeout(() => reject(new Error(`生产数据接口超过 ${Math.round(ms / 1000)} 秒未响应`)), ms);
+        promise.then((value) => { window.clearTimeout(timer); resolve(value); }, (error) => { window.clearTimeout(timer); reject(error); });
+      });
+      const loadScript = (src) => new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+      const isValidData = (data) => Boolean(
+        data && Array.isArray(data.productMap) && data.productMap.length > 0
+        && data.actuals && ['pm', 'lx'].some((dimension) =>
+          ['month', 'week'].some((grain) => Array.isArray(data.actuals?.[dimension]?.[grain]) && data.actuals[dimension][grain].length > 0)
+        )
+      );
+      try {
+        const response = await withTimeout(fetch('/api/data', { cache: 'no-store' }), 15000);
+        if (!response.ok) throw new Error(`生产数据接口返回 ${response.status}`);
+        const data = await response.json();
+        if (!isValidData(data)) throw new Error('生产数据接口返回的数据不完整');
+        window.AMAZON_DATA = data;
+      } catch (error) {
+        console.warn('生产数据接口暂不可用，使用仓库内最近一次发布数据：', error);
+        try {
+          await loadScript('amazon-data.js');
+        } catch (fallbackError) {
+          document.body.innerHTML = '<main style="max-width:720px;margin:12vh auto;padding:24px;font:16px/1.7 system-ui;color:#243b53"><h1>数据暂时无法加载</h1><p>生产数据接口和备用数据文件都无法读取，请稍后重试或联系管理员。</p></main>';
+          console.error('生产数据和备用数据均加载失败：', error, fallbackError);
+          return;
+        }
+      }
+      await loadScript('dashboard-runtime.js');
+    })();
+  </script>
 </body>
 </html>
