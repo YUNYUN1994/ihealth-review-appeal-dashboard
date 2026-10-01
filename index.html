@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Amazon 经营数据驾驶舱</title>
+  <title>iHealth Amazon 经营数据驾驶舱</title>
   <style>
     :root{
       --ink:#102a43;--muted:#6b7c93;--line:#d9e2ec;--paper:#f6f8fb;--card:#fff;
@@ -265,13 +265,75 @@
       .table-tools select{min-width:0;flex:1 1 140px}
     }
     @media (prefers-reduced-motion:reduce){.kpi,.panel,.btn,.seg button{transition:none!important}}
+    /* iHealth brand layer: orange is reserved for identity and primary action;
+       blue/teal remain analytical states so the dashboard stays calm and legible. */
+    :root{
+      --ihealth-orange:#ff5200;--ihealth-orange-dark:#d84400;--ihealth-orange-soft:#fff1eb;
+      --ihealth-navy:#123b56;--ihealth-blue:#0b6f9d;--ihealth-cyan:#00a6b2;
+      --ihealth-surface:#f7fafb;--ihealth-border:#dce6eb;
+      --ink:#173042;--muted:#617482;--line:var(--ihealth-border);--paper:var(--ihealth-surface);
+      --navy:var(--ihealth-navy);--teal:var(--ihealth-cyan);--cyan:#3f93bd;
+      --shadow:0 1px 2px rgba(18,59,86,.06),0 8px 24px rgba(18,59,86,.06);
+    }
+    body{font-family:"Rubik","Roboto","Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;background:linear-gradient(180deg,#f5fafc 0,#f7fafb 260px,#f7fafb 100%);color:var(--ink)}
+    body::before{content:"";display:block;height:4px;background:linear-gradient(90deg,var(--ihealth-orange) 0 18%,#ff7a45 18% 34%,var(--ihealth-cyan) 34% 100%)}
+    .app{max-width:1640px;padding:30px 36px 72px}
+    .topbar{position:relative;align-items:center;border-bottom:1px solid #dfe9ee;padding:4px 0 20px;margin-bottom:20px}
+    .topbar>div:first-child{position:relative;padding-left:18px}
+    .topbar>div:first-child::before{content:"";position:absolute;left:0;top:3px;bottom:4px;width:4px;border-radius:4px;background:var(--ihealth-orange)}
+    .eyebrow{color:var(--ihealth-orange);font-size:11px;letter-spacing:.12em;font-weight:800}
+    h1{color:var(--ihealth-navy);font-size:30px;letter-spacing:-.02em;margin-top:7px}
+    .subtitle{color:#6a7f8d}
+    .actions{gap:10px}
+    .btn{min-height:40px;border-radius:22px;border-color:#d7e3e8;color:var(--ihealth-navy);padding:0 16px;background:#fff;box-shadow:0 1px 2px rgba(18,59,86,.04);font-weight:700}
+    .btn:hover{border-color:#ffb092;background:var(--ihealth-orange-soft);color:var(--ihealth-orange-dark);transform:none}
+    .btn.primary{background:var(--ihealth-orange);border-color:var(--ihealth-orange);color:#fff;box-shadow:0 4px 12px rgba(255,82,0,.22)}
+    .btn.primary:hover{background:var(--ihealth-orange-dark);border-color:var(--ihealth-orange-dark);color:#fff}
+    .source-strip{background:#edf8fa;border:1px solid #cae9ed;border-left:4px solid var(--ihealth-cyan);border-radius:14px;color:#1e5969;padding:13px 16px;margin-bottom:20px;box-shadow:none}
+    .source-strip a{color:var(--ihealth-blue)}.source-strip small{color:#527481}
+    .refresh-status{color:#146579;background:#e2f4f5}
+    .refresh-status.running{color:#a34400;background:#fff0e8}.refresh-status.error{color:#a23a30;background:#fdecea}
+    .controlbar{background:rgba(255,255,255,.94);border:1px solid #dbe7ec;border-radius:16px;padding:14px 16px;box-shadow:var(--shadow);backdrop-filter:blur(10px)}
+    .control-group>label{color:#4e6573;font-weight:800}
+    select,input[type=text]{border-color:#cbdbe2;color:var(--ihealth-navy);border-radius:10px;background:#fff}
+    select:hover,input[type=text]:hover{border-color:#94b7c4}
+    select:focus,input[type=text]:focus{border-color:var(--ihealth-cyan);box-shadow:0 0 0 3px rgba(0,166,178,.16)}
+    .seg{background:#f0f6f8;border:0;border-radius:22px;padding:2px;gap:2px}
+    .seg button{border-radius:19px;background:transparent;color:#607785;font-weight:700}
+    .seg button.active{background:var(--ihealth-navy);color:#fff}
+    .comparison-notice{background:#f2f8fa;border-color:#cfe4ea;color:#416371;border-radius:14px}
+    .kpis{gap:14px;margin-bottom:24px}
+    .kpi{border:1px solid #dce7ec;border-left:4px solid var(--ihealth-cyan);border-radius:14px;background:#fff;box-shadow:var(--shadow);padding:18px;min-height:130px}
+    .kpi:nth-child(2){border-left-color:var(--ihealth-blue)}.kpi:nth-child(3){border-left-color:#7893a3}.kpi:nth-child(4){border-left-color:var(--ihealth-orange)}.kpi:nth-child(5){border-left-color:#25a989}.kpi:nth-child(6){border-left-color:#d95c4c}
+    .kpi-label{color:#617482}.kpi-value{color:var(--ihealth-navy);font-size:21px}.kpi-meta{color:#738792}
+    .yoy.up{color:#14866a}.yoy.down{color:#c84b40}
+    .panel{border:1px solid #dce7ec;border-radius:16px;box-shadow:var(--shadow);background:#fff}
+    .panel h2{color:var(--ihealth-navy);font-size:17px;letter-spacing:-.01em}
+    .panel h2::before{content:"";display:inline-block;width:4px;height:16px;margin:0 8px 0 0;vertical-align:-2px;border-radius:3px;background:var(--ihealth-orange)}
+    .panel-sub{color:#718692}
+    #categoryOverview{gap:14px}.category-block{border:1px solid #dce7ec;background:#fbfdfe;box-shadow:none}
+    .category-title{color:var(--ihealth-navy)}.overview-card{border-color:#dfebef;background:#fff;border-left:3px solid var(--ihealth-cyan)}
+    .overview-value{color:var(--ihealth-navy)}
+    .trend-line{stroke:var(--ihealth-cyan)}.point{stroke:var(--ihealth-cyan)}.trend-value-label{fill:var(--ihealth-navy)}.legend i{background:var(--ihealth-cyan)}
+    .progress-fill{background:var(--ihealth-cyan)}.progress-fill.warn{background:#e4a324}.progress-fill.over{background:#d95c4c}
+    .goal-card{--goal-color:var(--ihealth-cyan);--goal-soft:#e5f6f7;--goal-ink:#136b73}.goal-card.warning{--goal-color:#e4a324;--goal-soft:#fff4df;--goal-ink:#8d6000}.goal-card.behind{--goal-color:#d95c4c;--goal-soft:#fdecea;--goal-ink:#b3261e}.goal-card.ahead{--goal-color:#178b70;--goal-soft:#e4f5ee;--goal-ink:#146b4d}
+    .goal-time{border-color:#dce7ec;background:#f6fafb}.goal-time i{background:var(--ihealth-orange)}
+    .goal-fill{background:var(--goal-color)}
+    th{background:#f2f7f9;color:#47606e}tbody tr:nth-child(even) td{background:#fbfdfe}tbody tr:hover td{background:#fff4ef!important}
+    .table-scroll,.annual-product-scroll,.inventory-table-scroll{border-color:#dce7ec;border-radius:14px}
+    .pill{background:#e3f3f5;color:#146579}.pill.new{background:#fff0e8;color:#a34400}.pill.old{background:#e4f5ee;color:#146b4d}
+    .inventory-tools{background:#f3f8fa;border:1px solid #e3edf0}.inventory-stat{background:#fbfdfe;border-color:#dce7ec}
+    .annual-product-tools{border-bottom-color:#e4edf0}.annual-product-table th{background:#f2f7f9}
+    :focus-visible{outline:3px solid rgba(255,82,0,.30);outline-offset:3px}
+    @media (max-width:700px){body::before{height:3px}.app{padding:22px 14px 48px}.topbar>div:first-child{padding-left:14px}h1{font-size:25px}.btn{min-height:38px;padding:0 13px}.kpis{gap:10px}.kpi{padding:14px;min-height:112px}.kpi-value{font-size:18px}}
+
   </style>
 </head>
 <body>
   <main class="app">
     <header class="topbar">
       <div>
-        <div class="eyebrow">AMAZON OPERATIONS / 2026</div>
+        <div class="eyebrow">iHealth · AMAZON OPERATIONS / 2026</div>
         <h1>经营数据驾驶舱</h1>
         <p class="subtitle" id="periodCaption">2026 年 8 月 · US 站 · 当前视图：领星订单利润口径</p>
       </div>
