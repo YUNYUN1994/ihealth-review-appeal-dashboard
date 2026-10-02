@@ -365,6 +365,13 @@
     .annual-product-tools{border-bottom-color:#e4edf0}.annual-product-table th{background:#f2f7f9}
     :focus-visible{outline:3px solid rgba(255,82,0,.30);outline-offset:3px}
     @media (max-width:700px){body::before{height:3px}.app{padding:22px 14px 48px}.topbar>div:first-child{padding-left:14px}h1{font-size:25px}.btn{min-height:38px;padding:0 13px}.kpis{gap:10px}.kpi{padding:14px;min-height:112px}.kpi-value{font-size:18px}}
+    /* Product history filters: grouped layout keeps labels and controls readable. */
+    .annual-product-panel .annual-product-tools{display:grid;grid-template-columns:repeat(5,minmax(145px,1fr)) auto;align-items:end;gap:14px 16px;padding:16px 0 18px;border-bottom:1px solid #e4edf0}
+    .annual-product-panel .annual-product-tools label{display:grid;gap:6px;min-width:0;color:#5f6368;font-size:12px;font-weight:700;line-height:1.3}
+    .annual-product-panel .annual-product-tools select{width:100%;min-width:0;height:42px;padding:0 34px 0 12px;border:1px solid #d9e2ec;border-radius:10px;background:#fff;color:#17324a}
+    .annual-product-panel .annual-product-apply{height:42px;min-width:88px;white-space:nowrap}
+    @media (max-width:1180px){.annual-product-panel .annual-product-tools{grid-template-columns:repeat(3,minmax(160px,1fr))}.annual-product-panel .annual-product-apply{justify-self:start}}
+    @media (max-width:700px){.annual-product-panel .annual-product-tools{grid-template-columns:1fr;gap:12px;padding:14px 0 16px}.annual-product-panel .annual-product-tools label{gap:5px}.annual-product-panel .annual-product-tools select,.annual-product-panel .annual-product-apply{height:40px}.annual-product-panel .annual-product-apply{width:100%}}
   </style>
 </head>
 <body>
