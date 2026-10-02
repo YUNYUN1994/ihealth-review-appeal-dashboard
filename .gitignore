@@ -5,6 +5,8 @@ chrome-profile*/
 feishu-*.json
 feishu-raw.json
 refresh-status.json
+po3-source.json
+po3-weekly-refresh-status.json
 .refresh-*/
 .refresh-data.lock
 
@@ -25,3 +27,18 @@ extract-feishu.mjs
 Thumbs.db
 .vscode/
 .idea/
+
+# Secrets and production environment
+.env
+.env.*
+!.env.example
+old_live_raw.json
+new_live_raw.json
+live_records_precheck.json
+live_records_frontend_verified.json
+amazon_link_checks_live.json
+review-appeal-source*.json
+差评申诉周报_data.json
+差评申诉周报_*.html
+!review-appeal-dashboard.html
+review-test-*
