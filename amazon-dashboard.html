@@ -373,13 +373,16 @@
     .annual-product-panel .annual-product-apply{height:42px;min-width:88px;white-space:nowrap}
     @media (max-width:1180px){.annual-product-panel .annual-product-tools{grid-template-columns:repeat(3,minmax(160px,1fr))}.annual-product-panel .annual-product-apply{justify-self:start}}
     @media (max-width:700px){.annual-product-panel .annual-product-tools{grid-template-columns:1fr;gap:12px;padding:14px 0 16px}.annual-product-panel .annual-product-tools label{gap:5px}.annual-product-panel .annual-product-tools select,.annual-product-panel .annual-product-apply{height:40px}.annual-product-panel .annual-product-apply{width:100%}}
+    .brand-strip{display:flex;align-items:center;gap:14px;margin:0 0 8px;min-height:30px}.brand-wordmark{color:var(--ihealth-orange);font-size:25px;font-weight:900;letter-spacing:-.075em;line-height:1}.brand-wordmark sup{font-size:8px;letter-spacing:0;vertical-align:top;margin-left:2px}.brand-context{padding-left:14px;border-left:1px solid #d6e2e8;color:#5f7482;font-size:12px;font-weight:800;letter-spacing:.13em;line-height:1.2}.topbar .eyebrow{display:flex;align-items:center;gap:9px;margin-top:0}.topbar .eyebrow::before{content:"";display:inline-block;width:26px;height:2px;border-radius:2px;background:var(--ihealth-orange)}
+    @media (max-width:700px){.brand-strip{gap:10px;margin-bottom:7px}.brand-wordmark{font-size:22px}.brand-context{padding-left:10px;font-size:10px;letter-spacing:.1em}.topbar .eyebrow{font-size:10px;letter-spacing:.09em}.topbar .eyebrow::before{width:20px}}
   </style>
 </head>
 <body>
   <main class="app">
     <header class="topbar">
       <div>
-        <div class="eyebrow">iHealth · AMAZON OPERATIONS / 2026</div>
+        <div class="brand-strip" aria-label="iHealth Amazon 运营数据"><span class="brand-wordmark">iHealth<sup>®</sup></span><span class="brand-context">AMAZON OPERATIONS</span></div>
+        <div class="eyebrow">AMAZON DATA INTELLIGENCE · 2026</div>
         <h1>经营数据驾驶舱</h1>
         <p class="subtitle" id="periodCaption">2026 年 8 月 · US 站 · 当前视图：领星订单利润口径</p>
       </div>
