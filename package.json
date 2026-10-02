@@ -1,13 +1,10 @@
 {
-  "name": "amazon-data-ihealth",
+  "name": "ihealth-review-appeal-dashboard",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server.mjs",
-    "start:po3": "node po3-weekly-server.mjs",
-    "refresh": "node refresh-data.mjs --trigger manual",
-    "check": "node --check server.mjs && node --check refresh-data.mjs && node --check extract-one.mjs && node --check build-data.mjs && node --check dashboard-runtime.js"
+    "check": "node --check api/review-dashboard.js && node --check api/review-refresh/index.js && node --check api/review-refresh/status.js && node --check api/cron/review-refresh.js && node --check api/_lib/review-feishu.js && node --check api/_lib/review-blob-store.js && node --check api/_lib/review-refresh.js && node --check rebuild_live_precheck.mjs && node --check update_frontend_report.mjs"
   },
   "engines": {
     "node": ">=22"
