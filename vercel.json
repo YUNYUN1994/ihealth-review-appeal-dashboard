@@ -8,13 +8,9 @@
     { "source": "/review-appeal.html", "destination": "/api/review-dashboard" }
   ],
   "crons": [
-    { "path": "/api/cron/refresh", "schedule": "0 4 * * *" },
-    { "path": "/api/cron/refresh", "schedule": "0 10 * * *" },
     { "path": "/api/cron/review-refresh", "schedule": "0 14 * * *" }
   ],
   "functions": {
-    "api/refresh/index.js": { "maxDuration": 300, "includeFiles": "*.mjs" },
-    "api/cron/refresh.js": { "maxDuration": 300, "includeFiles": "*.mjs" },
     "api/review-refresh/index.js": { "maxDuration": 300, "includeFiles": "*.mjs" },
     "api/cron/review-refresh.js": { "maxDuration": 300, "includeFiles": "*.mjs" },
     "api/review-dashboard.js": { "maxDuration": 60, "includeFiles": "review-appeal-dashboard.html" }
