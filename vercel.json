@@ -3,7 +3,7 @@
   "version": 2,
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/", "destination": "/production-dashboard.html" },
+    { "source": "/", "destination": "/api/review-dashboard" },
     { "source": "/review-appeal.html", "destination": "/api/review-dashboard" }
   ],
   "crons": [
