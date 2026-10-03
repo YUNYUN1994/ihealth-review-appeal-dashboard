@@ -42,3 +42,10 @@ review-appeal-source*.json
 差评申诉周报_*.html
 !review-appeal-dashboard.html
 review-test-*
+
+# Tencent deployment artifacts
+.serverless/
+.sls/
+node_modules/
+.env.tencent
+.env.tencent.*

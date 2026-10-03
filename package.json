@@ -1,15 +1,15 @@
 {
   "name": "ihealth-review-appeal-dashboard",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node --check api/review-dashboard.js && node --check api/review-refresh/index.js && node --check api/review-refresh/status.js && node --check api/cron/review-refresh.js && node --check api/_lib/review-feishu.js && node --check api/_lib/review-blob-store.js && node --check api/_lib/review-refresh.js && node --check rebuild_live_precheck.mjs && node --check update_frontend_report.mjs"
+    "check": "node --check tencent-scf.js && node --check lib/review-feishu.mjs && node --check lib/review-storage.mjs && node --check lib/review-refresh.mjs && node --check rebuild_live_precheck.mjs && node --check update_frontend_report.mjs"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=20"
   },
   "dependencies": {
-    "@vercel/blob": "^2.3.0"
+    "cos-nodejs-sdk-v5": "^2.14.6"
   }
 }

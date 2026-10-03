@@ -1,0 +1,79 @@
+org: ${env:TENCENT_SLS_ORG, ''}
+app: ihealth-review-appeal-dashboard
+stage: ${env:TENCENT_SLS_STAGE, 'prod'}
+component: scf
+name: ihealth-review-appeal-dashboard
+
+inputs:
+  name: ${env:TENCENT_FUNCTION_NAME, 'ihealth-review-appeal-dashboard'}
+  region: ${env:TENCENT_REGION, 'ap-guangzhou'}
+  runtime: Nodejs20.19
+  handler: tencent-scf.main
+  type: event
+  memorySize: 1024
+  timeout: 300
+  initTimeout: 30
+  publicAccess: true
+  installDependency: true
+  role: ${env:TENCENT_SCF_ROLE, ''}
+  src:
+    src: ./
+    exclude:
+      - .git/**
+      - .github/**
+      - .env*
+      - .serverless/**
+      - .sls/**
+      - node_modules/**
+      - chrome-profile*/**
+      - '*.png'
+      - '*.log'
+      - feishu-*.json
+      - '*_raw.json'
+      - review-appeal/data.json
+      - review-appeal/refresh-status.json
+      - '差评申诉周报_*.html'
+  environment:
+    variables:
+      FEISHU_APP_ID: ${env:FEISHU_APP_ID, ''}
+      FEISHU_APP_SECRET: ${env:FEISHU_APP_SECRET, ''}
+      FEISHU_REVIEW_OLD_SPREADSHEET_TOKEN: ${env:FEISHU_REVIEW_OLD_SPREADSHEET_TOKEN, 'L58cs18QnhC9ketyJUYcJhQNnZe'}
+      FEISHU_REVIEW_NEW_SPREADSHEET_TOKEN: ${env:FEISHU_REVIEW_NEW_SPREADSHEET_TOKEN, 'Zoa9sSFYhhUYRutX1yOcoObTnFf'}
+      TENCENT_COS_BUCKET: ${env:TENCENT_COS_BUCKET, ''}
+      TENCENT_COS_REGION: ${env:TENCENT_COS_REGION, ''}
+      TENCENT_SECRET_ID: ${env:TENCENT_SECRET_ID, ''}
+      TENCENT_SECRET_KEY: ${env:TENCENT_SECRET_KEY, ''}
+      TENCENT_SESSION_TOKEN: ${env:TENCENT_SESSION_TOKEN, ''}
+      CRON_SECRET: ${env:CRON_SECRET, ''}
+      CORS_ORIGIN: ${env:CORS_ORIGIN, ''}
+  events:
+    - apigw:
+        parameters:
+          serviceName: ihealth-review-appeal-api
+          protocols:
+            - https
+          netTypes:
+            - OUTER
+          environment: release
+          endpoints:
+            - path: /
+              method: ANY
+              enableCORS: true
+              responseType: HTML
+              serviceTimeout: 300
+              function:
+                isIntegratedResponse: true
+            - path: /{proxy+}
+              method: ANY
+              enableCORS: true
+              responseType: HTML
+              serviceTimeout: 300
+              function:
+                isIntegratedResponse: true
+    - timer:
+        name: review-appeal-daily-refresh
+        parameters:
+          cronExpression: '0 0 22 * * * *'
+          argument:
+            trigger: cron
+          enable: true

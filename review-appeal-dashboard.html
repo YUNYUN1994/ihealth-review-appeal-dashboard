@@ -292,7 +292,7 @@ tr.total-row td{position:sticky;bottom:0;z-index:1;background:#fff0e9;color:#713
 </head>
 <body>
 <div class="wrap">
-<header class="hero"><div class="hero-title"><div class="brand-lockup"><span class="brand-wordmark">iHealth<sup>®</sup></span><span class="brand-divider" aria-hidden="true"></span><span class="brand-context">Review Operations</span></div><div class="eyebrow">AMAZON REVIEW APPEAL WEEKLY REPORT</div><h1>差评申诉周报</h1><div class="sub">统计截止：<strong>2026/10/2</strong>｜周次按周一至周日计算</div></div><div class="actions"><button class="primary" onclick="window.print()">打印 / 导出 PDF</button><button onclick="downloadData()">下载数据 JSON</button><button id="refreshButton" onclick="refreshPage()">刷新数据</button><span id="refreshStatus" class="refresh-status" aria-live="polite"></span><span id="autoRefreshStatus" class="auto-refresh-status" title="每天22:00抓取飞书、检查新增差评并核验 Amazon 前台">自动更新：每天22:00</span></div></header><div id="refreshToast" class="refresh-toast" role="status" aria-live="polite">刷新完成</div>
+<header class="hero"><div class="hero-title"><div class="brand-lockup"><span class="brand-wordmark">iHealth<sup>®</sup></span><span class="brand-divider" aria-hidden="true"></span><span class="brand-context">Review Operations</span></div><div class="eyebrow">AMAZON REVIEW APPEAL WEEKLY REPORT</div><h1>差评申诉周报</h1><div class="sub">统计截止：<strong>2026/10/2</strong>｜周次按周一至周日计算</div></div><div class="actions"><button class="primary" onclick="window.print()">打印 / 导出 PDF</button><button onclick="downloadData()">下载数据 JSON</button><button id="refreshButton" onclick="refreshPage()">刷新数据</button><span id="refreshStatus" class="refresh-status" aria-live="polite"></span><span id="autoRefreshStatus" class="auto-refresh-status" title="每天22:00通过飞书开放平台 API 抓取数据并检查新增差评">自动更新：每天22:00 · 飞书 API</span></div></header><div id="refreshToast" class="refresh-toast" role="status" aria-live="polite">刷新完成</div>
 <section class="kpis" id="kpis"></section>
 <nav class="tabs" id="tabs"><button class="tab active" data-panel="overview">总览</button><button class="tab" data-panel="product">产品维度</button><button class="tab" data-panel="appeal">申诉时间</button><button class="tab" data-panel="review">留评时间</button><button class="tab" data-panel="owner">负责人</button><button class="tab" data-panel="notes">口径说明</button></nav>
 <main><section id="overview" class="panel active"></section><section id="product" class="panel"></section><section id="appeal" class="panel"></section><section id="review" class="panel"></section><section id="owner" class="panel"></section><section id="notes" class="panel"></section></main>
@@ -405,7 +405,7 @@ function showRefreshDone(message='飞书数据已更新'){
   if(toast){toast.textContent=message;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),3200);}
   setTimeout(()=>{if(status)status.classList.remove('show');},4200);
 }
-const REVIEW_REFRESH_API='http://127.0.0.1:8772';
+const REVIEW_REFRESH_API='';
 function setRefreshProgress(message,state='loading'){
   const btn=document.getElementById('refreshButton'),status=document.getElementById('refreshStatus');
   if(btn){btn.disabled=true;btn.textContent='正在同步飞书…';btn.setAttribute('aria-busy','true');}
@@ -417,7 +417,7 @@ function setRefreshError(message){
   if(status){status.textContent=message;status.className='refresh-status show error';}
 }
 async function fetchRefreshStatus(){
-  const response=await fetch(REVIEW_REFRESH_API+'/api/status?t='+Date.now(),{cache:'no-store'});
+  const response=await fetch(REVIEW_REFRESH_API+'/api/review-refresh/status?t='+Date.now(),{cache:'no-store'});
   if(!response.ok)throw new Error('无法读取刷新状态');
   return response.json();
 }
@@ -435,7 +435,7 @@ async function waitForRefresh(){
 async function refreshPage(trigger='manual'){
   setRefreshProgress('正在连接飞书并重新抓取数据…');
   try{
-    const response=await fetch(REVIEW_REFRESH_API+'/api/refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({trigger})});
+    const response=await fetch(REVIEW_REFRESH_API+'/api/review-refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({trigger})});
     if(!response.ok&&response.status!==409){const payload=await response.json().catch(()=>({}));throw new Error(payload.message||'无法启动刷新任务');}
     const state=await waitForRefresh();
     try{sessionStorage.setItem('reviewReportRefreshing','1');sessionStorage.setItem('reviewReportRefreshTime',state.finishedAt||'');}catch(e){}
@@ -450,7 +450,7 @@ try{if(sessionStorage.getItem('reviewReportRefreshing')==='1'){sessionStorage.re
 function scheduleAutoRefresh(){
   const now=new Date(),target=new Date(now);target.setHours(22,0,0,0);if(target<=now)target.setDate(target.getDate()+1);
   const status=document.getElementById('autoRefreshStatus');
-  if(status){status.textContent='自动同步：每天22:00抓取飞书';status.title='到点后重新抓取两份飞书源表、检查新增差评并重建网页数据';}
+  if(status){status.textContent='自动同步：每天22:00抓取飞书 API';status.title='到点后重新抓取两份飞书源表、检查新增差评并重建网页数据';}
   setTimeout(()=>refreshPage('page-scheduled'),Math.max(1000,target-now));
 }
 scheduleAutoRefresh();
