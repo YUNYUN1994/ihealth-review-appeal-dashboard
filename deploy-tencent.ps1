@@ -23,7 +23,7 @@ Get-Content -LiteralPath $envFile | ForEach-Object {
   [Environment]::SetEnvironmentVariable($name, $value, 'Process')
 }
 
-$required = @('TENCENT_REGION', 'TENCENT_COS_BUCKET', 'FEISHU_APP_ID', 'FEISHU_APP_SECRET', 'CRON_SECRET')
+$required = @('TENCENT_REGION', 'TENCENT_COS_BUCKET', 'TENCENT_SCF_ROLE', 'FEISHU_APP_ID', 'FEISHU_APP_SECRET', 'CRON_SECRET')
 foreach ($name in $required) {
   if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name, 'Process'))) {
     throw "缺少必填配置：$name"
