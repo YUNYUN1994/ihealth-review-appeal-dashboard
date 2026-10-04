@@ -292,7 +292,7 @@ tr.total-row td{position:sticky;bottom:0;z-index:1;background:#fff0e9;color:#713
 </head>
 <body>
 <div class="wrap">
-<header class="hero"><div class="hero-title"><div class="brand-lockup"><span class="brand-wordmark">iHealth<sup>®</sup></span><span class="brand-divider" aria-hidden="true"></span><span class="brand-context">Review Operations</span></div><div class="eyebrow">AMAZON REVIEW APPEAL WEEKLY REPORT</div><h1>差评申诉周报</h1><div class="sub">统计截止：<strong>2026/10/2</strong>｜周次按周一至周日计算</div></div><div class="actions"><button class="primary" onclick="window.print()">打印 / 导出 PDF</button><button onclick="downloadData()">下载数据 JSON</button><button id="refreshButton" onclick="refreshPage()">刷新数据</button><span id="refreshStatus" class="refresh-status" aria-live="polite"></span><span id="autoRefreshStatus" class="auto-refresh-status" title="每天22:00通过飞书开放平台 API 抓取数据并检查新增差评">自动更新：每天22:00 · 飞书 API</span></div></header><div id="refreshToast" class="refresh-toast" role="status" aria-live="polite">刷新完成</div>
+<header class="hero"><div class="hero-title"><div class="brand-lockup"><span class="brand-wordmark">iHealth<sup>®</sup></span><span class="brand-divider" aria-hidden="true"></span><span class="brand-context">Review Operations</span></div><div class="eyebrow">AMAZON REVIEW APPEAL WEEKLY REPORT</div><h1>差评申诉周报</h1><div class="sub">统计截止：<strong>2026/10/2</strong>｜周次按周一至周日计算</div></div><div class="actions"><button class="primary" onclick="window.print()">打印 / 导出 PDF</button><button onclick="downloadData()">下载数据 JSON</button><button id="refreshButton" onclick="refreshPage()">刷新数据</button><span id="refreshStatus" class="refresh-status" aria-live="polite"></span><span id="autoRefreshStatus" class="auto-refresh-status" title="当前部署未创建自动刷新定时器">自动更新：未启用 · 手动刷新</span></div></header><div id="refreshToast" class="refresh-toast" role="status" aria-live="polite">刷新完成</div>
 <section class="kpis" id="kpis"></section>
 <nav class="tabs" id="tabs"><button class="tab active" data-panel="overview">总览</button><button class="tab" data-panel="product">产品维度</button><button class="tab" data-panel="appeal">申诉时间</button><button class="tab" data-panel="review">留评时间</button><button class="tab" data-panel="owner">负责人</button><button class="tab" data-panel="notes">口径说明</button></nav>
 <main><section id="overview" class="panel active"></section><section id="product" class="panel"></section><section id="appeal" class="panel"></section><section id="review" class="panel"></section><section id="owner" class="panel"></section><section id="notes" class="panel"></section></main>
@@ -326,6 +326,8 @@ function sortTable(th){
 }
 function selectHtml(id,label,options,selected){return '<label>'+esc(label)+' <select id="'+id+'">'+options.map(o=>'<option value="'+esc(o.value)+'" '+(o.value===selected?'selected':'')+'>'+esc(o.label)+'</option>').join('')+'</select></label>';}
 function distinct(rows,key){return [...new Set(rows.map(r=>r[key]).filter(Boolean))];}
+function tableRows(table){const rows=Array.isArray(table)?table:[];const headers=rows[0]||[];return rows.slice(1).map(row=>Object.fromEntries(headers.map((key,i)=>[key,row[i]])));}
+const productWeek=tableRows(DATA.product_week),productSummary=tableRows(DATA.product_summary),appealShare=tableRows(DATA.appeal_share),appealTotal=tableRows(DATA.appeal_total),reviewShare=tableRows(DATA.review_share),reviewTotal=tableRows(DATA.review_total),ownerWeek=tableRows(DATA.owner_week),notes=tableRows(DATA.notes),linkNotes=tableRows(DATA.link_notes);
 function weekCode(label){return String(label||'').slice(0,8);}
 const allWeeks=[...new Set([].concat(productWeek,appealShare,reviewShare,ownerWeek).map(r=>r['周次']).filter(Boolean))].sort((a,b)=>weekCode(a).localeCompare(weekCode(b)));
 const latestWeek=allWeeks[allWeeks.length-1]||'';
@@ -405,7 +407,7 @@ function showRefreshDone(message='飞书数据已更新'){
   if(toast){toast.textContent=message;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),3200);}
   setTimeout(()=>{if(status)status.classList.remove('show');},4200);
 }
-const REVIEW_REFRESH_API='';
+const REVIEW_REFRESH_API=(window.__REVIEW_APP_BASE_PATH__||'').replace(/\/$/,'');
 function setRefreshProgress(message,state='loading'){
   const btn=document.getElementById('refreshButton'),status=document.getElementById('refreshStatus');
   if(btn){btn.disabled=true;btn.textContent='正在同步飞书…';btn.setAttribute('aria-busy','true');}
@@ -417,7 +419,7 @@ function setRefreshError(message){
   if(status){status.textContent=message;status.className='refresh-status show error';}
 }
 async function fetchRefreshStatus(){
-  const response=await fetch(REVIEW_REFRESH_API+'/api/review-refresh/status?t='+Date.now(),{cache:'no-store'});
+  const response=await fetch(REVIEW_REFRESH_API+'/api/refresh/status?t='+Date.now(),{cache:'no-store'});
   if(!response.ok)throw new Error('无法读取刷新状态');
   return response.json();
 }
@@ -435,7 +437,7 @@ async function waitForRefresh(){
 async function refreshPage(trigger='manual'){
   setRefreshProgress('正在连接飞书并重新抓取数据…');
   try{
-    const response=await fetch(REVIEW_REFRESH_API+'/api/review-refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({trigger})});
+    const response=await fetch(REVIEW_REFRESH_API+'/api/refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({trigger})});
     if(!response.ok&&response.status!==409){const payload=await response.json().catch(()=>({}));throw new Error(payload.message||'无法启动刷新任务');}
     const state=await waitForRefresh();
     try{sessionStorage.setItem('reviewReportRefreshing','1');sessionStorage.setItem('reviewReportRefreshTime',state.finishedAt||'');}catch(e){}
@@ -448,10 +450,8 @@ async function refreshPage(trigger='manual'){
 }
 try{if(sessionStorage.getItem('reviewReportRefreshing')==='1'){sessionStorage.removeItem('reviewReportRefreshing');setTimeout(()=>showRefreshDone('飞书数据已重新抓取并更新'),120);}}catch(e){}
 function scheduleAutoRefresh(){
-  const now=new Date(),target=new Date(now);target.setHours(22,0,0,0);if(target<=now)target.setDate(target.getDate()+1);
   const status=document.getElementById('autoRefreshStatus');
-  if(status){status.textContent='自动同步：每天22:00抓取飞书 API';status.title='到点后重新抓取两份飞书源表、检查新增差评并重建网页数据';}
-  setTimeout(()=>refreshPage('page-scheduled'),Math.max(1000,target-now));
+  if(status){status.textContent='自动更新：未启用 · 手动刷新';status.title='当前部署未创建自动刷新定时器，请点击“刷新数据”手动同步飞书';}
 }
 scheduleAutoRefresh();
 document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById(btn.dataset.panel).classList.add('active');}));
