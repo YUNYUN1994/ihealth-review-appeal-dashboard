@@ -19,6 +19,8 @@ const records = [...new Map(raw.map((r) => [r.link, r])).values()].map((r) => {
     frontendTitle: check?.title || '',
     frontendUrl: check?.finalUrl || '',
     frontendVerifiedDeleted: check?.state === 'deleted_frontend',
+    primaryStatusDeleted: /已删除/.test(String(r.status || '')),
+    secondAppealStatusDeleted: /已删除/.test(String(r.secondStatus || '')),
     sourceStatusDeleted: /已删除/.test(`${r.status || ''} ${r.secondStatus || ''}`),
   };
 });
@@ -53,8 +55,11 @@ const recWeek = (r, field) => {
 };
 const isAppeal = (r) => Boolean(parseDate(r.appealDate));
 const isReview = (r) => Boolean(parseDate(r.reviewDate));
-// 删除口径按飞书源表的申诉状态：任一状态字段明确包含“已删除”即计入；Amazon 前台核验仅作辅助信息。
-const isDeleted = (r) => r.sourceStatusDeleted === true || /已删除/.test(`${r.status || ''} ${r.secondStatus || ''}`);
+// 删除口径完全按飞书源表：申诉状态或二次申诉状态任一字段包含“已删除”即计入。
+// Amazon 前台核验仅作辅助信息，不参与删除统计。
+const isPrimaryDeleted = (r) => r.primaryStatusDeleted === true || /已删除/.test(String(r.status || ''));
+const isSecondAppealDeleted = (r) => r.secondAppealStatusDeleted === true || /已删除/.test(String(r.secondStatus || ''));
+const isDeleted = (r) => isPrimaryDeleted(r) || isSecondAppealDeleted(r);
 const pct = (n, d) => d ? Number((n / d).toFixed(8)) : 0;
 const key = (...parts) => parts.map((x) => String(x ?? '')).join('\u0001');
 const clean = (v) => String(v ?? '').trim();
@@ -177,18 +182,21 @@ const ownerWeekHeader = ['周次','负责人','负责产品','申诉数量','已
 data.owner_week = table(ownerWeekHeader, [...ownerWeeks.values()].sort((a,b)=>weekSort(a.week,b.week)||compareText(a.owner,b.owner)).map((g)=>({周次:g.week,负责人:g.owner,负责产品:[...new Set(g.records.map((r)=>r.reportProduct))].sort(compareText).join('、'),申诉数量:g.records.length,已删除数量:g.records.filter(isDeleted).length,申诉成功率:pct(g.records.filter(isDeleted).length,g.records.length),状态空白数:g.records.filter((r)=>!explicitSubmitted(r)).length,待跟进数:g.records.filter(statusPending).length})));
 
 const deletedCount = records.filter(isDeleted).length;
+const primaryDeletedCount = records.filter(isPrimaryDeleted).length;
+const secondAppealDeletedCount = records.filter(isSecondAppealDeleted).length;
+const secondAppealOnlyDeletedCount = records.filter((r) => isSecondAppealDeleted(r) && !isPrimaryDeleted(r)).length;
 const sourceStatusCounts = records.reduce((a, r) => { const s = clean(`${r.status || ''} ${r.secondStatus || ''}`) || '状态空白'; a[s] = (a[s] || 0) + 1; return a; }, {});
 data.notes = [
   ['项目', '口径说明'],
   ['数据范围', '第一份源表 + 第二份飞书申诉记录表；第二份表负责人统一记为“晕晕+欧阳”。'],
   ['模板页', '名称为“产品-负责人”的模板页不读取、不计入统计。'],
   ['去重规则', '按评论链接去重；重复记录优先保留第一份源表的产品、负责人等信息，并合并来源记录。'],
-  ['删除判定', '按飞书源表申诉状态判定：状态字段包含“已删除”计入已删除；空白或其他状态不计入。Amazon 前台核验结果仅作辅助参考。'],
+  ['删除判定', '按飞书源表“申诉状态”和“二次申诉状态”判定：任一字段包含“已删除”即计入已删除；空白或其他状态不计入。Amazon 前台核验结果仅作辅助参考。'],
   ['申诉成功率', '已删除数量 ÷ 申诉记录数量；已删除数量完全按源表申诉状态统计，即使个别记录未填写申诉日期；周度申诉明细无法为无申诉日期记录归属申诉周。'],
   ['申诉方向', '先归纳为方向类别；未填写方向不加入方向分析；同一条记录可命中多个方向，因此各方向占比合计可能超过100%。'],
   ['周次', '按周一至周日的 ISO 周计算。'],
 ];
-data.link_notes = [['说明','判定规则'],['已删除','源表申诉状态包含“已删除”。'],['未删除','源表申诉状态为空、未回复、已拒绝或其他非“已删除”状态。']];
-data.meta = { ...(data.meta || {}), recordCount:records.length, productCount:productSummaryRows.length, weekCount:new Set([...appealWeeks.keys(),...reviewWeeks.keys()]).size, refreshedAt:new Date().toISOString(), deletionBasis:'source_table_status', sourceStatusCounts, frontendVerification:{total:records.length,...sourceStatusCounts,deleted:deletedCount} };
+data.link_notes = [['说明','判定规则'],['已删除（含二次申诉）','源表“申诉状态”或“二次申诉状态”任一字段包含“已删除”。'],['其中二次申诉删除','仅“二次申诉状态”包含“已删除”的记录数量。'],['未删除','两个状态字段均为空、未回复、已拒绝或其他非“已删除”状态。']];
+data.meta = { ...(data.meta || {}), recordCount:records.length, productCount:productSummaryRows.length, weekCount:new Set([...appealWeeks.keys(),...reviewWeeks.keys()]).size, refreshedAt:new Date().toISOString(), deletionBasis:'source_table_status', sourceStatusCounts, frontendVerification:{total:records.length,...sourceStatusCounts,deleted:deletedCount,primaryDeleted:primaryDeletedCount,secondAppealDeleted:secondAppealDeletedCount,secondAppealOnlyDeleted:secondAppealOnlyDeletedCount} };
 fs.writeFileSync(basePath, JSON.stringify(data, null, 2), 'utf8');
-console.log(JSON.stringify({records:records.length,appealRecords:records.filter(isAppeal).length,reviewRecords:records.filter(isReview).length,deleted:deletedCount,sourceStatuses:sourceStatusCounts,products:productSummaryRows.length,productWeeks:productWeekRows.length,appealWeeks:appealWeeks.size,reviewWeeks:reviewWeeks.size,ownerWeeks:data.owner_week.length-1},null,2));
+console.log(JSON.stringify({records:records.length,appealRecords:records.filter(isAppeal).length,reviewRecords:records.filter(isReview).length,deleted:deletedCount,primaryDeleted:primaryDeletedCount,secondAppealDeleted:secondAppealDeletedCount,secondAppealOnlyDeleted:secondAppealOnlyDeletedCount,sourceStatuses:sourceStatusCounts,products:productSummaryRows.length,productWeeks:productWeekRows.length,appealWeeks:appealWeeks.size,reviewWeeks:reviewWeeks.size,ownerWeeks:data.owner_week.length-1},null,2));

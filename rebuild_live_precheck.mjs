@@ -5,6 +5,10 @@ const newPath = process.env.REVIEW_NEW_RAW_PATH || 'C:/codex/数据计算/new_li
 const outPath = process.env.REVIEW_RECORDS_PATH || 'C:/codex/数据计算/live_records_precheck.json';
 const normalize = (v) => String(v ?? '').trim();
 const cellText = (cell) => normalize(cell?.text !== undefined ? cell.text : cell?.value);
+const normalizeHeader = (value) => normalize(value).replace(/^\uFEFF/, '').replace(/\s+/g, '');
+const headerIndex = (headers, name) => headers.findIndex((header) => normalizeHeader(header) === normalizeHeader(name));
+const cellAt = (cells, indexes, name) => cellText(cells[indexes[name]]);
+const dateAt = (cells, indexes, name) => parseDate(cells[indexes[name]]);
 const excelSerialToIso = (n) => {
   const ms = Math.round((Number(n) - 25569) * 86400000);
   const d = new Date(ms);
@@ -27,20 +31,25 @@ const addSource = (doc, sourceKey, sourceLabel) => {
   for (const sheet of doc.sheets || []) {
     const owner = normalize(sheet.owner);
     if (!owner) throw new Error(`源 ${sourceKey} 的工作表“${sheet.name}”缺少负责人配置`);
+    const headerRow = (sheet.rows || [])[0]?.values || [];
+    const headers = headerRow.map((cell) => cellText(cell));
+    const indexes = Object.fromEntries(['申诉日期', '产品', 'ASIN', '评论链接', '星级', '评论日期', '申诉方向', '申诉状态', '二次申诉状态'].map((name) => [name, headerIndex(headers, name)]));
+    const missing = Object.entries(indexes).filter(([, index]) => index < 0).map(([name]) => name);
+    if (missing.length) throw new Error(`源 ${sourceKey} 的工作表“${sheet.name}”缺少必需字段：${missing.join('、')}`);
     for (const rr of (sheet.rows || []).slice(1)) {
       const cells = rr.values || [];
-      const link = cellText(cells[3]);
+      const link = cellAt(cells, indexes, '评论链接');
       if (!/^https?:\/\/[^\s]*amazon\./i.test(link)) continue;
       rawRows.push({
         link,
-        product: cellText(cells[1]),
-        asin: cellText(cells[2]),
-        rating: cellText(cells[4]),
-        appealDate: parseDate(cells[0]),
-        reviewDate: parseDate(cells[6]),
-        direction: cellText(cells[9]),
-        status: cellText(cells[12]),
-        secondStatus: cellText(cells[16]),
+        product: cellAt(cells, indexes, '产品'),
+        asin: cellAt(cells, indexes, 'ASIN'),
+        rating: cellAt(cells, indexes, '星级'),
+        appealDate: dateAt(cells, indexes, '申诉日期'),
+        reviewDate: dateAt(cells, indexes, '评论日期'),
+        direction: cellAt(cells, indexes, '申诉方向'),
+        status: cellAt(cells, indexes, '申诉状态'),
+        secondStatus: cellAt(cells, indexes, '二次申诉状态'),
         owner,
         source: sourceLabel,
         sourceKey,
