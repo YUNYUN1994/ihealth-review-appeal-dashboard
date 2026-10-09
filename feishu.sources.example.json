@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "appSlug": "review-appeals",
+  "denyList": [
+    { "expectedTitle": "产品-负责人", "reason": "模板页，不读取" },
+    { "expectedTitle": "引用表-不读取", "reason": "明确排除" },
+    { "expectedTitle": "WOOT", "reason": "明确排除" }
+  ],
+  "sources": [
+    {
+      "sourceKey": "main-appeals",
+      "spreadsheetToken": "<REVIEW_SPREADSHEET_TOKEN>",
+      "sheets": [
+        {
+          "sheetId": "<SHEET_ID>",
+          "expectedTitle": "<产品-负责人>",
+          "owner": "<负责人>",
+          "requiredHeaders": ["申诉日期", "产品", "ASIN", "评论链接", "星级", "评论日期", "申诉方向", "申诉状态", "二次申诉状态"]
+        }
+      ]
+    }
+  ],
+  "salesSources": [
+    {
+      "sourceKey": "weekly-profit",
+      "spreadsheetToken": "<WEEKLY_PROFIT_SPREADSHEET_TOKEN>",
+      "sheets": [
+        {
+          "sheetId": "<WEEKLY_PROFIT_SHEET_ID>",
+          "expectedTitle": "领星_周度订单利润",
+          "maxRows": 10000,
+          "maxCols": 11,
+          "requiredHeaders": ["年份", "周数", "ASIN", "销量"]
+        }
+      ]
+    }
+  ]
+}

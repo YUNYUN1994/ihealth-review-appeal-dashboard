@@ -3,11 +3,13 @@ import fs from 'node:fs';
 const basePath = process.env.REVIEW_DATA_PATH || 'C:/codex/数据计算/差评申诉周报_data.json';
 const rawPath = process.env.REVIEW_RECORDS_PATH || 'C:/codex/数据计算/live_records_precheck.json';
 const checksPath = process.env.REVIEW_CHECKS_PATH || 'C:/codex/数据计算/amazon_link_checks_live.json';
+const salesPath = process.env.REVIEW_SALES_PATH || 'C:/codex/数据计算/sales_raw.json';
 const verifiedPath = process.env.REVIEW_VERIFIED_PATH || 'C:/codex/数据计算/live_records_frontend_verified.json';
 
 const data = fs.existsSync(basePath) ? JSON.parse(fs.readFileSync(basePath, 'utf8')) : {};
 const raw = JSON.parse(fs.readFileSync(rawPath, 'utf8'));
 const checks = fs.existsSync(checksPath) ? JSON.parse(fs.readFileSync(checksPath, 'utf8')) : [];
+const salesRaw = fs.existsSync(salesPath) ? JSON.parse(fs.readFileSync(salesPath, 'utf8')) : {};
 const checkByLink = new Map(checks.map((x) => [x.url, x]));
 const productAlias = { '验孕13支': '验孕13 Pack', '验孕3支': '验孕3支装' };
 const records = [...new Map(raw.map((r) => [r.link, r])).values()].map((r) => {
@@ -64,6 +66,59 @@ const pct = (n, d) => d ? Number((n / d).toFixed(8)) : 0;
 const key = (...parts) => parts.map((x) => String(x ?? '')).join('\u0001');
 const clean = (v) => String(v ?? '').trim();
 const compareText = (a, b) => String(a).localeCompare(String(b), 'zh-CN');
+const cellText = (cell) => clean(cell?.text !== undefined ? cell.text : cell?.value);
+const normalizeHeader = (value) => clean(value).replace(/^\uFEFF/, '').replace(/\s+/g, '');
+const numberValue = (value) => {
+  const text = clean(value).replace(/,/g, '');
+  if (!text) return null;
+  const normalized = text.replace(/^\((.*)\)$/, '-$1');
+  const number = Number(normalized.replace(/%$/, ''));
+  return Number.isFinite(number) ? number : null;
+};
+const salesWeekKey = (year, week) => {
+  const y = String(year ?? '').match(/\d{4}/)?.[0];
+  const w = String(week ?? '').match(/W(?:eek)?\s*(\d{1,2})/i)?.[1];
+  return y && w ? `${y}-W${pad(Number(w))}` : '';
+};
+const salesIndex = new Map();
+const salesRowsSeen = [];
+for (const source of Object.values(salesRaw || {})) {
+  for (const sheet of source?.sheets || []) {
+    const header = (sheet.rows || [])[0]?.values || [];
+    const headers = header.map(cellText);
+    const indexes = Object.fromEntries(['年份', '周数', 'ASIN', '销量'].map((name) => [name, headers.findIndex((h) => normalizeHeader(h) === normalizeHeader(name))]));
+    if (Object.values(indexes).some((i) => i < 0)) throw new Error(`销量工作表“${sheet.name || '未命名'}”缺少必需字段：年份、周数、ASIN、销量`);
+    for (const row of (sheet.rows || []).slice(1)) {
+      const values = row.values || [];
+      const asin = clean(cellText(values[indexes.ASIN])).toUpperCase();
+      const week = salesWeekKey(cellText(values[indexes['年份']]), cellText(values[indexes['周数']]));
+      const units = numberValue(cellText(values[indexes['销量']]));
+      if (!asin && !week && units === null) continue;
+      if (!asin || !week || units === null) { salesRowsSeen.push({ invalid: true }); continue; }
+      const k = `${asin}\u0001${week}`;
+      salesIndex.set(k, (salesIndex.get(k) || 0) + units);
+      salesRowsSeen.push({ asin, week, units });
+    }
+  }
+}
+if (Object.keys(salesRaw || {}).length && !salesRowsSeen.length) throw new Error('销量工作表未读取到可解析的销量数据');
+const salesForRecords = (list) => {
+  const asins = [...new Set(list.map((r) => clean(r.asin).toUpperCase()).filter(Boolean))];
+  if (!asins.length) return { sales: null, asins: [], missingAsins: [] };
+  const week = list.map((r) => recWeek(r, 'reviewDate')).find(Boolean) || '';
+  const missingAsins = asins.filter((asin) => !salesIndex.has(`${asin}\u0001${week}`));
+  const sales = missingAsins.length ? null : asins.reduce((total, asin) => total + (salesIndex.get(`${asin}\u0001${week}`) || 0), 0);
+  return { sales, asins, missingAsins, week };
+};
+const salesForWeekRecords = (list, week) => {
+  const asins = [...new Set(list.map((r) => clean(r.asin).toUpperCase()).filter(Boolean))];
+  if (!asins.length) return { sales: null, asins: [], missingAsins: [] };
+  const iso = String(week || '').slice(0, 8);
+  const missingAsins = asins.filter((asin) => !salesIndex.has(`${asin}\u0001${iso}`));
+  const sales = missingAsins.length ? null : asins.reduce((total, asin) => total + (salesIndex.get(`${asin}\u0001${iso}`) || 0), 0);
+  return { sales, asins, missingAsins, week: iso };
+};
+const salesRate = (reviews, sales) => Number.isFinite(Number(sales)) && Number(sales) > 0 ? pct(reviews, sales) : null;
 
 // 将源表中的方向归并成可读的分析类别，避免直接堆叠原始文案。
 const directionRules = [
@@ -173,14 +228,15 @@ data.appeal_total = table(appealTotalHeader, [...appealWeeks.entries()].sort((a,
 const appealShareHeader = ['周次','产品','负责人','申诉数量','已删除数量','申诉占比','已删除占比'];
 data.appeal_share = table(appealShareHeader, rowsFromGroups(appealGroups).map((g)=>{const all=appealWeeks.get(g.week)||[];const deletedAll=all.filter(isDeleted).length;return {周次:g.week,产品:g.product,负责人:g.owner,申诉数量:g.records.length,已删除数量:g.records.filter(isDeleted).length,申诉占比:pct(g.records.length,all.length),已删除占比:pct(g.records.filter(isDeleted).length,deletedAll)};}));
 
-const reviewTotalHeader = ['周次','周新增差评数','周已删除数','已删除率'];
-data.review_total = table(reviewTotalHeader, [...reviewWeeks.entries()].sort((a,b)=>weekSort(a[0],b[0])).map(([week,list])=>({周次:week,周新增差评数:list.length,周已删除数:list.filter(isDeleted).length,已删除率:pct(list.filter(isDeleted).length,list.length)})));
-const reviewShareHeader = ['周次','产品','负责人','新增差评数','已删除数量','产品占比','已删除占比'];
-data.review_share = table(reviewShareHeader, rowsFromGroups(reviewGroups).map((g)=>{const all=reviewWeeks.get(g.week)||[];const deletedAll=all.filter(isDeleted).length;return {周次:g.week,产品:g.product,负责人:g.owner,新增差评数:g.records.length,已删除数量:g.records.filter(isDeleted).length,产品占比:pct(g.records.length,all.length),已删除占比:pct(g.records.filter(isDeleted).length,deletedAll)};}));
+const reviewTotalHeader = ['周次','周新增差评数','周销量','差评率','周已删除数','已删除率'];
+data.review_total = table(reviewTotalHeader, [...reviewWeeks.entries()].sort((a,b)=>weekSort(a[0],b[0])).map(([week,list])=>{const sales=salesForWeekRecords(list,week).sales;const deleted=list.filter(isDeleted).length;return {周次:week,周新增差评数:list.length,周销量:sales,差评率:salesRate(list.length,sales),周已删除数:deleted,已删除率:pct(deleted,list.length)};}));
+const reviewShareHeader = ['周次','产品','负责人','新增差评数','销量','差评率','已删除数量','产品占比','已删除占比'];
+data.review_share = table(reviewShareHeader, rowsFromGroups(reviewGroups).map((g)=>{const all=reviewWeeks.get(g.week)||[];const deletedAll=all.filter(isDeleted).length;const sales=salesForWeekRecords(g.records,g.week).sales;return {周次:g.week,产品:g.product,负责人:g.owner,新增差评数:g.records.length,销量:sales,差评率:salesRate(g.records.length,sales),已删除数量:g.records.filter(isDeleted).length,产品占比:pct(g.records.length,all.length),已删除占比:pct(g.records.filter(isDeleted).length,deletedAll)};}));
 
 const ownerWeekHeader = ['周次','负责人','负责产品','申诉数量','已删除数量','申诉成功率','状态空白数','待跟进数'];
 data.owner_week = table(ownerWeekHeader, [...ownerWeeks.values()].sort((a,b)=>weekSort(a.week,b.week)||compareText(a.owner,b.owner)).map((g)=>({周次:g.week,负责人:g.owner,负责产品:[...new Set(g.records.map((r)=>r.reportProduct))].sort(compareText).join('、'),申诉数量:g.records.length,已删除数量:g.records.filter(isDeleted).length,申诉成功率:pct(g.records.filter(isDeleted).length,g.records.length),状态空白数:g.records.filter((r)=>!explicitSubmitted(r)).length,待跟进数:g.records.filter(statusPending).length})));
 
+data.meta = { ...(data.meta || {}), sales: { rows: salesRowsSeen.length, parsedRows: salesRowsSeen.filter((r) => !r.invalid).length, invalidRows: salesRowsSeen.filter((r) => r.invalid).length, indexKeys: salesIndex.size } };
 const deletedCount = records.filter(isDeleted).length;
 const primaryDeletedCount = records.filter(isPrimaryDeleted).length;
 const secondAppealDeletedCount = records.filter(isSecondAppealDeleted).length;
@@ -195,8 +251,11 @@ data.notes = [
   ['申诉成功率', '已删除数量 ÷ 申诉记录数量；已删除数量完全按源表申诉状态统计，即使个别记录未填写申诉日期；周度申诉明细无法为无申诉日期记录归属申诉周。'],
   ['申诉方向', '先归纳为方向类别；未填写方向不加入方向分析；同一条记录可命中多个方向，因此各方向占比合计可能超过100%。'],
   ['周次', '按周一至周日的 ISO 周计算。'],
+  ['销量与差评率', '销量来自“领星_周度订单利润”表，按 ASIN + ISO 周匹配；当销量缺失时显示“—”，不把未知销量当作 0，也不计算虚假的差评率。'],
 ];
 data.link_notes = [['说明','判定规则'],['已删除（含二次申诉）','源表“申诉状态”或“二次申诉状态”任一字段包含“已删除”。'],['其中二次申诉删除','仅“二次申诉状态”包含“已删除”的记录数量。'],['未删除','两个状态字段均为空、未回复、已拒绝或其他非“已删除”状态。']];
 data.meta = { ...(data.meta || {}), recordCount:records.length, productCount:productSummaryRows.length, weekCount:new Set([...appealWeeks.keys(),...reviewWeeks.keys()]).size, refreshedAt:new Date().toISOString(), deletionBasis:'source_table_status', sourceStatusCounts, frontendVerification:{total:records.length,...sourceStatusCounts,deleted:deletedCount,primaryDeleted:primaryDeletedCount,secondAppealDeleted:secondAppealDeletedCount,secondAppealOnlyDeleted:secondAppealOnlyDeletedCount} };
 fs.writeFileSync(basePath, JSON.stringify(data, null, 2), 'utf8');
 console.log(JSON.stringify({records:records.length,appealRecords:records.filter(isAppeal).length,reviewRecords:records.filter(isReview).length,deleted:deletedCount,primaryDeleted:primaryDeletedCount,secondAppealDeleted:secondAppealDeletedCount,secondAppealOnlyDeleted:secondAppealOnlyDeletedCount,sourceStatuses:sourceStatusCounts,products:productSummaryRows.length,productWeeks:productWeekRows.length,appealWeeks:appealWeeks.size,reviewWeeks:reviewWeeks.size,ownerWeeks:data.owner_week.length-1},null,2));
+
+
