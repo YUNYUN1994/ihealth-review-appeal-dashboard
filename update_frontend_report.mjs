@@ -185,6 +185,9 @@ for (const r of records) {
     g.records.push(r);
     ensure(appealWeeks, w, () => []).push(r);
     ensure(ownerWeeks, key(w, r.owner), () => ({ week: w, owner: r.owner, records: [] })).records.push(r);
+  } else if (isDeleted(r)) {
+    // Count source-table deletions even when no appeal date exists; surface them under an explicit unassigned week.
+    ensure(ownerWeeks, key('申诉周未填写', r.owner), () => ({ week: '申诉周未填写', owner: r.owner, records: [] })).records.push(r);
   }
   if (isReview(r)) {
     const w = recWeek(r, 'reviewDate');
@@ -234,7 +237,7 @@ const reviewShareHeader = ['周次','产品','负责人','新增差评数','销�
 data.review_share = table(reviewShareHeader, rowsFromGroups(reviewGroups).map((g)=>{const all=reviewWeeks.get(g.week)||[];const deletedAll=all.filter(isDeleted).length;const sales=salesForWeekRecords(g.records,g.week).sales;return {周次:g.week,产品:g.product,负责人:g.owner,新增差评数:g.records.length,销量:sales,差评率:salesRate(g.records.length,sales),已删除数量:g.records.filter(isDeleted).length,产品占比:pct(g.records.length,all.length),已删除占比:pct(g.records.filter(isDeleted).length,deletedAll)};}));
 
 const ownerWeekHeader = ['周次','负责人','负责产品','申诉数量','已删除数量','申诉成功率','状态空白数','待跟进数'];
-data.owner_week = table(ownerWeekHeader, [...ownerWeeks.values()].sort((a,b)=>weekSort(a.week,b.week)||compareText(a.owner,b.owner)).map((g)=>({周次:g.week,负责人:g.owner,负责产品:[...new Set(g.records.map((r)=>r.reportProduct))].sort(compareText).join('、'),申诉数量:g.records.length,已删除数量:g.records.filter(isDeleted).length,申诉成功率:pct(g.records.filter(isDeleted).length,g.records.length),状态空白数:g.records.filter((r)=>!explicitSubmitted(r)).length,待跟进数:g.records.filter(statusPending).length})));
+data.owner_week = table(ownerWeekHeader, [...ownerWeeks.values()].sort((a,b)=>(a.week==='申诉周未填写'?1:0)-(b.week==='申诉周未填写'?1:0)||weekSort(a.week,b.week)||compareText(a.owner,b.owner)).map((g)=>{const appeals=g.records.filter(isAppeal),deleted=g.records.filter(isDeleted).length;return {周次:g.week,负责人:g.owner,负责产品:[...new Set(g.records.map((r)=>r.reportProduct))].sort(compareText).join('、'),申诉数量:appeals.length,已删除数量:deleted,申诉成功率:pct(deleted,appeals.length),状态空白数:appeals.filter((r)=>!explicitSubmitted(r)).length,待跟进数:appeals.filter(statusPending).length};}));
 
 data.meta = { ...(data.meta || {}), sales: { rows: salesRowsSeen.length, parsedRows: salesRowsSeen.filter((r) => !r.invalid).length, invalidRows: salesRowsSeen.filter((r) => r.invalid).length, indexKeys: salesIndex.size } };
 const deletedCount = records.filter(isDeleted).length;
