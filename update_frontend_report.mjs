@@ -171,6 +171,8 @@ const allProducts = [...new Set(records.map((r) => r.reportProduct).filter(Boole
 const appealGroups = new Map();
 const reviewGroups = new Map();
 const productGroups = new Map();
+const productAppealGroups = new Map();
+const productReviewGroups = new Map();
 const appealWeeks = new Map();
 const reviewWeeks = new Map();
 const ownerWeeks = new Map();
@@ -181,6 +183,7 @@ for (const r of records) {
   pg.records.push(r);
   if (isAppeal(r)) {
     const w = recWeek(r, 'appealDate');
+    ensure(productAppealGroups, key(w, p), () => ({ week: w, product: p, records: [] })).records.push(r);
     const g = ensure(appealGroups, key(w, p, r.owner), () => ({ week: w, product: p, owner: r.owner, records: [] }));
     g.records.push(r);
     ensure(appealWeeks, w, () => []).push(r);
@@ -191,6 +194,7 @@ for (const r of records) {
   }
   if (isReview(r)) {
     const w = recWeek(r, 'reviewDate');
+    ensure(productReviewGroups, key(w, p), () => ({ week: w, product: p, records: [] })).records.push(r);
     const g = ensure(reviewGroups, key(w, p, r.owner), () => ({ week: w, product: p, owner: r.owner, records: [] }));
     g.records.push(r);
     ensure(reviewWeeks, w, () => []).push(r);
@@ -201,19 +205,19 @@ const groupSort = (a, b) => weekSort(a.week, b.week) || compareText(a.product, b
 const rowsFromGroups = (map) => [...map.values()].sort(groupSort);
 const table = (header, rows) => [header, ...rows.map((r) => header.map((h) => r[h] ?? null))];
 
-const productWeekHeader = ['周次','产品','负责人','留评差评数','申诉记录数','明确已提交数','申诉删除数','申诉成功率','1星','2星','3星','4星','5星','星级未知','申诉方向总结'];
-const productWeekRows = [...new Set([...reviewGroups.keys(), ...appealGroups.keys()])]
+const productWeekHeader = ['周次','产品','留评差评数','申诉记录数','明确已提交数','申诉删除数','申诉成功率','1星','2星','3星','4星','5星','星级未知','申诉方向总结'];
+const productWeekRows = [...new Set([...productReviewGroups.keys(), ...productAppealGroups.keys()])]
   .map((k) => {
-    const a = appealGroups.get(k) || { records: [] };
-    const v = reviewGroups.get(k) || { records: [] };
+    const a = productAppealGroups.get(k) || { records: [] };
+    const v = productReviewGroups.get(k) || { records: [] };
     const sample = a.records[0] || v.records[0];
     const stars = starCounts(v.records);
-    return { 周次: sample ? (recWeek(sample, isAppeal(a.records[0] || {}) ? 'appealDate' : 'reviewDate') || a.week || v.week) : '', 产品: sample?.reportProduct || a.product || v.product, 负责人: sample?.owner || a.owner || v.owner,
+    return { 周次: sample ? (recWeek(sample, isAppeal(a.records[0] || {}) ? 'appealDate' : 'reviewDate') || a.week || v.week) : '', 产品: sample?.reportProduct || a.product || v.product,
       留评差评数: v.records.length, 申诉记录数: a.records.length, 明确已提交数: a.records.filter(explicitSubmitted).length, 申诉删除数: a.records.filter(isDeleted).length, 申诉成功率: a.records.length ? pct(a.records.filter(isDeleted).length, a.records.length) : null,
       '1星': stars[1], '2星': stars[2], '3星': stars[3], '4星': stars[4], '5星': stars[5], 星级未知: stars.unknown,
       申诉方向总结: summarizeDirections(a.records.map((r) => r.direction)),
     };
-  }).sort((a,b)=>weekSort(a.周次,b.周次)||compareText(a.产品,b.产品)||compareText(a.负责人,b.负责人));
+  }).sort((a,b)=>weekSort(a.周次,b.周次)||compareText(a.产品,b.产品));
 data.product_week = table(productWeekHeader, productWeekRows);
 
 const productSummaryHeader = ['产品','负责人','留评差评总数','申诉记录总数','明确已提交总数','已删除总数','申诉成功率','1星','2星','3星','4星','5星','星级未知','申诉方向总结'];
