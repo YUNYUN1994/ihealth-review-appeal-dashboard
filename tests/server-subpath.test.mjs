@@ -67,6 +67,21 @@ test('legacy root redirect pages are removed', () => {
   assert.ok(!html.includes('统计截止：<strong>2026/10/2'), '更新时间不能写死');
 });
 
+test('week filters only offer valid weeks of their own dimension and labels name the week anchor', async () => {
+  const html = fs.readFileSync(path.join(root, 'review-appeal-dashboard.html'), 'utf8');
+  const pick = (name) => { const line = html.split(/\r?\n/).find((l) => l.startsWith(`function ${name}(`)); assert.ok(line, `missing ${name}`); return line; };
+  const { default: vm } = await import('node:vm');
+  const ctx = {};
+  vm.runInNewContext(`${pick('weekCode')}\n${pick('isValidWeek')}\n${pick('weeksOf')}\nthis.weeksOf=weeksOf;this.isValidWeek=isValidWeek;`, ctx);
+  const rows = [{ 周次: '2026-W42 (10/12-10/18)' }, { 周次: '申诉周未填写' }, { 周次: '' }, { 周次: null }, { 周次: '2026-W40 (09/28-10/04)' }, { 周次: '2026-W42 (10/12-10/18)' }];
+  assert.deepEqual([...ctx.weeksOf(rows)], ['2026-W40 (09/28-10/04)', '2026-W42 (10/12-10/18)']);
+  assert.equal(ctx.isValidWeek('申诉周未填写'), false);
+  assert.match(html, /multiSelectHtml\('productWeekFilter','留评周（可多选）',productWeeks,/);
+  assert.match(html, /productWeeks=weeksOf\(productWeek\)/);
+  for (const label of ['本申诉周申诉数', '本申诉周删除数', '所选留评周申诉数', '所选留评周删除数']) assert.ok(html.includes(label), label);
+  assert.ok(!html.includes("'本周申诉数量'") && !html.includes("'本周删除数量'"));
+});
+
 function runAutoRefresh(port) {
   return new Promise((resolve) => {
     execFile(process.execPath, [path.join(root, 'scripts', 'auto-refresh.mjs')], {

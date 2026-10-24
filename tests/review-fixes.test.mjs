@@ -116,8 +116,43 @@ test('product summary weekly appeal and deletion counts match the default review
   const weekRows = objects(data.product_review_week);
   for (const row of objects(data.product_summary)) {
     const week = weekRows.find((r) => r.产品 === row.产品 && r.周次 === data.meta.defaultWeek);
-    assert.equal(row.本周申诉数量, week ? week.当周提交差评数 : 0, `${row.产品} 本周申诉`);
-    assert.equal(row.本周删除数量, week ? week.当周删除数 : 0, `${row.产品} 本周删除`);
-    assert.ok(row.本周删除数量 <= row.累计删除数量 && row.本周申诉数量 <= row.累计申诉数量);
+    assert.equal(row.所选留评周申诉数, week ? week.当周提交差评数 : 0, `${row.产品} 所选留评周申诉数`);
+    assert.equal(row.所选留评周删除数, week ? week.当周删除数 : 0, `${row.产品} 所选留评周删除数`);
+    assert.ok(row.所选留评周删除数 <= row.累计删除数量 && row.所选留评周申诉数 <= row.累计申诉数量);
   }
+  assert.ok(!data.product_summary[0].includes('本周申诉数量') && !data.product_summary[0].includes('本周删除数量'));
+});
+
+test('deleted records without appeal date count in product cumulative deletions and totals stay consistent', () => {
+  const data = buildFromRecords([
+    { link: 'a1', product: '5811黑', owner: '甲', reviewDate: '2026-09-01', appealDate: '2026-09-02', status: '已删除' },
+    { link: 'a2', product: '5811黑', owner: '甲', reviewDate: '2026-09-01', appealDate: '2026-09-02', status: '已提交' },
+    { link: 'u1', product: '5811黑', owner: '晕晕+欧阳', reviewDate: '2026-09-01', appealDate: '', status: '已删除' },
+    { link: 'u2', product: '5811黑', owner: '晕晕+欧阳', reviewDate: '2026-09-02', appealDate: null, secondStatus: '已删除' },
+    { link: 'u3', product: '', owner: '乙', reviewDate: '2026-09-02', appealDate: '', status: '已删除' },
+    { link: 'b1', product: '723', owner: '乙', reviewDate: '2026-09-08', appealDate: '2026-09-09', status: '已删除' },
+  ]);
+  const product = objects(data.product_summary).find((r) => r.产品 === '5811黑');
+  assert.equal(product.累计删除数量, 3, '两条无申诉日期的已删除记录计入产品累计删除');
+  assert.equal(product.累计申诉数量, 4, '已删除但无申诉日期的记录同时计入累计申诉，保证删除 ⊆ 申诉');
+  assert.equal(product.累计成功率, 0.75);
+  for (const row of objects(data.product_summary)) assert.ok(row.累计成功率 === null || row.累计成功率 <= 1, `${row.产品} 成功率不超过 100%`);
+  const productDeleted = objects(data.product_summary).reduce((n, r) => n + r.累计删除数量, 0);
+  const productAppeals = objects(data.product_summary).reduce((n, r) => n + r.累计申诉数量, 0);
+  const ownerDeleted = objects(data.owner_week).reduce((n, r) => n + r.已删除数量, 0);
+  const ownerAppeals = objects(data.owner_week).reduce((n, r) => n + r.申诉数量, 0);
+  const overall = data.meta.overall;
+  assert.equal(overall.deletedCount, 5);
+  assert.equal(overall.appealCount, 6);
+  assert.equal(overall.deletedWithoutAppealDate, 3);
+  assert.equal(ownerDeleted, overall.deletedCount, '负责人累计删除 = 总览累计删除');
+  assert.equal(ownerAppeals, overall.appealCount, '负责人累计申诉 = 总览累计申诉');
+  assert.equal(productAppeals + overall.deletedExcludedFromProduct.length, overall.appealCount);
+  assert.equal(productDeleted + overall.deletedExcludedFromProduct.length, overall.deletedCount, '产品累计删除 + 明确排除 = 总览累计删除');
+  assert.equal(overall.productDeletedCount, productDeleted);
+  assert.deepEqual(overall.deletedExcludedFromProduct.map((r) => [r.reason, r.owner]), [['产品名为空，未计入产品维度', '乙']]);
+  // 无申诉日期的记录不进入申诉周明细
+  assert.equal(objects(data.appeal_total).reduce((n, r) => n + r.周已删除数, 0), 2);
+  assert.ok(objects(data.appeal_share).every((r) => r.周次 !== '申诉周未填写'));
+  assert.equal(objects(data.owner_week).find((r) => r.周次 === '申诉周未填写' && r.负责人 === '晕晕+欧阳').已删除数量, 2);
 });
