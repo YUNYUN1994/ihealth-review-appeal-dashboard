@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily 22:00 Asia/Shanghai refresh for iHealth review appeals dashboard
+
+[Timer]
+OnCalendar=*-*-* 22:00:00 Asia/Shanghai
+Persistent=true
+RandomizedDelaySec=0
+Unit=ihealth-review-appeals-refresh.service
+
+[Install]
+WantedBy=timers.target

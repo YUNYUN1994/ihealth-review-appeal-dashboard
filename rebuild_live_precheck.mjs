@@ -63,6 +63,16 @@ const newer = JSON.parse(fs.readFileSync(newPath, 'utf8'));
 addSource(old, old.sourceKey || 'main-report', '主申诉表');
 addSource(newer, newer.sourceKey || 'secondary-report', '补充申诉表');
 const mergeText = (left, right) => [...new Set([left, right].map(normalize).filter(Boolean))].join(' / ');
+// 日期字段必须保持单个可解析的 ISO 日期：优先保留第一份源表的日期，缺失时才用后续来源补齐；
+// 冲突只记录在 dateConflicts 中，不能拼接成“日期1 / 日期2”导致整条记录失去周次。
+const mergeDate = (existing, field, value) => {
+  if (!value) return;
+  if (!existing[field]) { existing[field] = value; return; }
+  if (existing[field] !== value) {
+    existing.dateConflicts = existing.dateConflicts || {};
+    existing.dateConflicts[field] = [...new Set([...(existing.dateConflicts[field] || [existing[field]]), value])];
+  }
+};
 const byLink = new Map();
 for (const r of rawRows) {
   const existing = byLink.get(r.link);
@@ -70,11 +80,14 @@ for (const r of rawRows) {
   else {
     existing.mergedSources = [...new Set([...(existing.mergedSources || [existing.source]), r.source])];
     existing.mergedSourceKeys = [...new Set([...(existing.mergedSourceKeys || [existing.sourceKey]), r.sourceKey])];
-    for (const field of ['appealDate', 'reviewDate', 'direction', 'status', 'secondStatus']) existing[field] = mergeText(existing[field], r[field]);
+    for (const field of ['appealDate', 'reviewDate']) mergeDate(existing, field, r[field]);
+    for (const field of ['direction', 'status', 'secondStatus']) existing[field] = mergeText(existing[field], r[field]);
+    if (!normalize(existing.product) && normalize(r.product)) existing.product = r.product;
+    if (!normalize(existing.asin) && normalize(r.asin)) existing.asin = r.asin;
     existing.mergedSourceSheets = [...new Set([...(existing.mergedSourceSheets || [existing.sourceSheet]), r.sourceSheet])];
   }
 }
 const records = [...byLink.values()];
 fs.writeFileSync(outPath, JSON.stringify(records, null, 2), 'utf8');
 const bySource = records.reduce((a, r) => ((a[r.source] = (a[r.source] || 0) + 1), a), {});
-console.log(JSON.stringify({ rawCandidates: rawRows.length, uniqueRecords: records.length, duplicateGroups: rawRows.length - records.length, bySource, sheets: [...new Set(records.map(r => r.sourceSheet))] }, null, 2));
+console.log(JSON.stringify({ rawCandidates: rawRows.length, uniqueRecords: records.length, duplicateGroups: rawRows.length - records.length, dateConflicts: records.filter((r) => r.dateConflicts).length, bySource, sheets: [...new Set(records.map(r => r.sourceSheet))] }, null, 2));

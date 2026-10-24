@@ -46,7 +46,7 @@ test('product weeks merge owners and recalculate rates and direction shares', ()
   assert.match(row.申诉类型一览, /专业差评号 1条（33.3%）/);
   assert.equal(rows.find(row => row.产品 === '723' && row.周次.startsWith('2026-W43')).申诉类型一览, null);
   assert.deepEqual(data.product_summary[0], [
-    '产品', '累计申诉数量', '累计删除数量', '累计成功率', '申诉类型一览',
+    '产品', '本周申诉数量', '累计申诉数量', '本周删除数量', '累计删除数量', '累计成功率', '申诉类型一览',
     '成功比例最高的申诉类型', '本周新增差评', '本周销量', '本周差评率',
   ]);
   assert.ok(!data.product_summary[0].some((key) => /^[1-5]星$/.test(key) || key === '星级未知'));

@@ -26,10 +26,13 @@ Nginx 会将外部前缀去掉后代理到本应用的 `127.0.0.1:8771`。前端
 ```powershell
 npm install
 npm run check
+npm test
 ```
 
 本地启动需要提供与生产相同结构的环境变量：`APP_SLUG`、`APP_BASE_PATH`、`HOST`、`PORT`、`APP_DATA_DIR`、`FEISHU_APP_ID`、`FEISHU_APP_SECRET`、`FEISHU_SOURCES_FILE`。
 
 ## 自动更新
 
-当前生产部署不创建定时器，页面显示“自动更新：未启用 · 手动刷新”。确认频率后再为本应用单独增加 systemd timer；不会修改 Amazon 看板既有的 12:00 / 18:00 timer。
+本应用使用独立的 `ihealth-review-appeals-refresh.timer`（`deploy/` 目录），每天 22:00（Asia/Shanghai）触发 `ihealth-review-appeals-refresh.service`。该 oneshot 服务运行 `scripts/auto-refresh.mjs`，通过 `127.0.0.1:8771` 调用 `POST /api/refresh`（`trigger: auto`），在应用进程内执行与手动刷新完全相同的流程：重新读取 `FEISHU_SOURCES_FILE`、调用飞书开放平台 API 读取全部允许的工作表、校验、去重、重新计算并原子写入；失败时保留上一次成功数据并以非 0 退出，可用 `journalctl -u ihealth-review-appeals-refresh.service` 查看。定时任务进程不加载含飞书凭据的 env。不会修改 Amazon 看板既有的 12:00 / 18:00 timer。
+
+安装（需持有 `/run/lock/ihealth-apps-deploy.lock`）：将两个单元文件复制到 `/etc/systemd/system/`，执行 `systemctl daemon-reload && systemctl enable --now ihealth-review-appeals-refresh.timer`。

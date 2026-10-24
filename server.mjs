@@ -12,6 +12,8 @@ const HOST = process.env.HOST || '127.0.0.1';
 const APP_SLUG = process.env.APP_SLUG || 'review-appeals';
 const BASE_PATH = process.env.APP_BASE_PATH || `/apps/${APP_SLUG}/`;
 const TEMPLATE_PATH = path.join(ROOT, 'review-appeal-dashboard.html');
+// 与 deploy/ihealth-review-appeals-refresh.timer 保持一致。
+const REFRESH_SCHEDULE = 'daily 22:00 Asia/Shanghai';
 let templatePromise;
 function json(status, body) { return { status, type: 'application/json; charset=utf-8', body: JSON.stringify(body) }; }
 function html(status, body) { return { status, type: 'text/html; charset=utf-8', body }; }
@@ -37,10 +39,16 @@ async function health() {
 async function status() {
   const stored = await readReviewStatus();
   const value = stored || { running: false, progress: '尚未更新', lastError: null };
-  return json(200, { ...value, running: Boolean(value.running || isReviewRefreshRunning()), schedule: 'manual-only', timezone: 'Asia/Shanghai' });
+  return json(200, { ...value, running: Boolean(value.running || isReviewRefreshRunning()), schedule: REFRESH_SCHEDULE, timezone: 'Asia/Shanghai' });
 }
-function beginRefresh() {
-  const promise = runReviewRefresh('manual');
+async function readTrigger(req) {
+  // 只接受 manual / auto 两种来源标记；请求体无效时按手动刷新处理。
+  let body = '';
+  for await (const chunk of req) { body += chunk; if (body.length > 1024) break; }
+  try { return JSON.parse(body || '{}').trigger === 'auto' ? 'auto' : 'manual'; } catch { return 'manual'; }
+}
+function beginRefresh(trigger) {
+  const promise = runReviewRefresh(trigger);
   promise.catch((error) => console.error('review refresh failed:', error.message));
   return promise;
 }
@@ -54,8 +62,9 @@ async function route(req) {
   }
   if (req.method === 'GET' && pathname === '/api/refresh/status') return status();
   if (req.method === 'POST' && pathname === '/api/refresh') {
+    const trigger = await readTrigger(req);
     if (isReviewRefreshRunning()) return json(409, { ok: false, message: '数据更新正在进行中' });
-    beginRefresh();
+    beginRefresh(trigger);
     return json(202, { ok: true, message: '已开始重新抓取飞书数据', status: { running: true } });
   }
   if (req.method === 'GET' && (pathname === '/' || !pathname.startsWith('/api/'))) {

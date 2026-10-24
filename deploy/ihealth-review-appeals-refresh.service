@@ -1,0 +1,18 @@
+[Unit]
+Description=Refresh iHealth review appeals dashboard data from Feishu
+After=network-online.target ihealth-review-appeals.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ihealth-review-appeals
+Group=ihealth-review-appeals
+WorkingDirectory=/opt/ihealth-apps/review-appeals
+# 只需内部地址，不加载含飞书凭据的 env；真正的飞书读取在 ihealth-review-appeals.service 进程内完成。
+Environment=HOST=127.0.0.1
+Environment=PORT=8771
+Environment=APP_SLUG=review-appeals
+ExecStart=/usr/bin/node /opt/ihealth-apps/review-appeals/scripts/auto-refresh.mjs
+TimeoutStartSec=40min
+NoNewPrivileges=true
+PrivateTmp=true
