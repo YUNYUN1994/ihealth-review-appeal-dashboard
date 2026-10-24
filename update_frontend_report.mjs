@@ -154,6 +154,19 @@ const summarizeDirections = (list) => {
     .map(([name, count]) => `${name} ${count}条（${(count / denominator * 100).toFixed(1)}%）`)
     .join('；');
 };
+const topDirection = (list) => {
+  const counts = new Map();
+  let denominator = 0;
+  for (const text of list) {
+    const cats = classifyDirections(text);
+    if (!cats.length) continue;
+    denominator += 1;
+    for (const cat of cats) counts.set(cat, (counts.get(cat) || 0) + 1);
+  }
+  if (!denominator || !counts.size) return null;
+  const [name, count] = [...counts.entries()].sort((a, b) => b[1] - a[1] || compareText(a[0], b[0]))[0];
+  return `${name} ${count}条（${(count / denominator * 100).toFixed(1)}%）`;
+};
 const starCounts = (list) => {
   const out = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, unknown: 0 };
   for (const r of list) {
@@ -205,40 +218,47 @@ const groupSort = (a, b) => weekSort(a.week, b.week) || compareText(a.product, b
 const rowsFromGroups = (map) => [...map.values()].sort(groupSort);
 const table = (header, rows) => [header, ...rows.map((r) => header.map((h) => r[h] ?? null))];
 
-const productWeekHeader = ['周次','产品','留评差评数','申诉记录数','明确已提交数','申诉删除数','申诉成功率','1星','2星','3星','4星','5星','星级未知','申诉方向总结'];
-const productWeekRows = [...new Set([...productReviewGroups.keys(), ...productAppealGroups.keys()])]
-  .map((k) => {
-    const a = productAppealGroups.get(k) || { records: [] };
-    const v = productReviewGroups.get(k) || { records: [] };
-    const sample = a.records[0] || v.records[0];
-    const stars = starCounts(v.records);
-    return { 周次: sample ? (recWeek(sample, isAppeal(a.records[0] || {}) ? 'appealDate' : 'reviewDate') || a.week || v.week) : '', 产品: sample?.reportProduct || a.product || v.product,
-      留评差评数: v.records.length, 申诉记录数: a.records.length, 明确已提交数: a.records.filter(explicitSubmitted).length, 申诉删除数: a.records.filter(isDeleted).length, 申诉成功率: a.records.length ? pct(a.records.filter(isDeleted).length, a.records.length) : null,
-      '1星': stars[1], '2星': stars[2], '3星': stars[3], '4星': stars[4], '5星': stars[5], 星级未知: stars.unknown,
-      申诉方向总结: summarizeDirections(a.records.map((r) => r.direction)),
-    };
-  }).sort((a,b)=>weekSort(a.周次,b.周次)||compareText(a.产品,b.产品));
-data.product_week = table(productWeekHeader, productWeekRows);
+const currentWeekBoundary = mondayOf(new Date());
+currentWeekBoundary.setUTCDate(currentWeekBoundary.getUTCDate() - 7);
+const currentFullWeek = isoWeek(currentWeekBoundary);
+const weekCode = (label) => String(label || '').slice(0, 8);
+const activityWeeks = [...new Set([...appealWeeks.keys(), ...reviewWeeks.keys()].filter(Boolean))].sort((a, b) => weekCode(a).localeCompare(weekCode(b)));
+const defaultWeek = activityWeeks.filter((week) => weekCode(week) <= weekCode(currentFullWeek)).at(-1) || activityWeeks.at(-1) || currentFullWeek;
 
-const productSummaryHeader = ['产品','负责人','留评差评总数','申诉记录总数','明确已提交总数','已删除总数','申诉成功率','1星','2星','3星','4星','5星','星级未知','申诉方向总结'];
+// 产品维度固定以留评周为时间锚点；申诉周只用于申诉时间维度。
+const productReviewWeekHeader = ['周次','产品','当周销量','当周新增差评','当周提交差评数','当周删除数','删除成功率','申诉类型一览','成功比例最高的申诉类型'];
+const productReviewWeekRows = [...productReviewGroups.values()].sort(groupSort).map((g) => {
+  const appeals = g.records.filter(isAppeal);
+  const deleted = appeals.filter(isDeleted).length;
+  const sales = salesForWeekRecords(g.records, g.week).sales;
+  return { 周次:g.week, 产品:g.product, 当周销量:sales, 当周新增差评:g.records.length, 当周提交差评数:appeals.length, 当周删除数:deleted,
+    删除成功率:appeals.length ? pct(deleted, appeals.length) : null, 申诉类型一览:summarizeDirections(appeals.map((r) => r.direction)), 成功比例最高的申诉类型:topDirection(appeals.map((r) => r.direction)) };
+});
+data.product_review_week = table(productReviewWeekHeader, productReviewWeekRows);
+// 保留旧键，避免旧缓存或旧客户端读取时出现空数据；新页面只使用 product_review_week。
+data.product_week = data.product_review_week;
+
+const productSummaryHeader = ['产品','累计申诉数量','累计删除数量','累计成功率','申诉类型一览','成功比例最高的申诉类型','本周新增差评','本周销量','本周差评率'];
 const productSummaryRows = [...productGroups.values()].sort((a,b)=>compareText(a.product,b.product)).map((g) => {
   const appeal = g.records.filter(isAppeal);
-  const stars = starCounts(g.records);
-  const deleted = g.records.filter(isDeleted).length;
-  return { 产品:g.product, 负责人:ownerNames(g.records), 留评差评总数:g.records.filter(isReview).length, 申诉记录总数:appeal.length, 明确已提交总数:appeal.filter(explicitSubmitted).length, 已删除总数:deleted, 申诉成功率:appeal.length ? pct(deleted, appeal.length) : 0,
-    '1星':stars[1], '2星':stars[2], '3星':stars[3], '4星':stars[4], '5星':stars[5], 星级未知:stars.unknown, 申诉方向总结:summarizeDirections(appeal.map((r)=>r.direction)) };
+  const deleted = appeal.filter(isDeleted).length;
+  const current = productReviewGroups.get(key(defaultWeek, g.product))?.records || [];
+  const currentSales = current.length ? salesForWeekRecords(current, defaultWeek).sales : null;
+  return { 产品:g.product, 累计申诉数量:appeal.length, 累计删除数量:deleted, 累计成功率:appeal.length ? pct(deleted, appeal.length) : null,
+    申诉类型一览:summarizeDirections(appeal.map((r)=>r.direction)), 成功比例最高的申诉类型:topDirection(appeal.map((r)=>r.direction)),
+    本周新增差评:current.length, 本周销量:currentSales, 本周差评率:salesRate(current.length, currentSales) };
 });
 data.product_summary = table(productSummaryHeader, productSummaryRows);
 
 const appealTotalHeader = ['周次','周申诉总数','明确已提交数','周已删除数','申诉成功率'];
 data.appeal_total = table(appealTotalHeader, [...appealWeeks.entries()].sort((a,b)=>weekSort(a[0],b[0])).map(([week,list])=>({周次:week,周申诉总数:list.length,明确已提交数:list.filter(explicitSubmitted).length,周已删除数:list.filter(isDeleted).length,申诉成功率:pct(list.filter(isDeleted).length,list.length)})));
-const appealShareHeader = ['周次','产品','负责人','申诉数量','已删除数量','申诉占比','已删除占比'];
-data.appeal_share = table(appealShareHeader, rowsFromGroups(appealGroups).map((g)=>{const all=appealWeeks.get(g.week)||[];const deletedAll=all.filter(isDeleted).length;return {周次:g.week,产品:g.product,负责人:g.owner,申诉数量:g.records.length,已删除数量:g.records.filter(isDeleted).length,申诉占比:pct(g.records.length,all.length),已删除占比:pct(g.records.filter(isDeleted).length,deletedAll)};}));
+const appealShareHeader = ['周次','产品','申诉数量','已删除数量','申诉占比','已删除占比'];
+data.appeal_share = table(appealShareHeader, rowsFromGroups(productAppealGroups).map((g)=>{const all=appealWeeks.get(g.week)||[];const deletedAll=all.filter(isDeleted).length;return {周次:g.week,产品:g.product,申诉数量:g.records.length,已删除数量:g.records.filter(isDeleted).length,申诉占比:pct(g.records.length,all.length),已删除占比:pct(g.records.filter(isDeleted).length,deletedAll)};}));
 
 const reviewTotalHeader = ['周次','周新增差评数','周销量','差评率','周已删除数','已删除率'];
 data.review_total = table(reviewTotalHeader, [...reviewWeeks.entries()].sort((a,b)=>weekSort(a[0],b[0])).map(([week,list])=>{const sales=salesForWeekRecords(list,week).sales;const deleted=list.filter(isDeleted).length;return {周次:week,周新增差评数:list.length,周销量:sales,差评率:salesRate(list.length,sales),周已删除数:deleted,已删除率:pct(deleted,list.length)};}));
-const reviewShareHeader = ['周次','产品','负责人','新增差评数','销量','差评率','已删除数量','产品占比','已删除占比'];
-data.review_share = table(reviewShareHeader, rowsFromGroups(reviewGroups).map((g)=>{const all=reviewWeeks.get(g.week)||[];const deletedAll=all.filter(isDeleted).length;const sales=salesForWeekRecords(g.records,g.week).sales;return {周次:g.week,产品:g.product,负责人:g.owner,新增差评数:g.records.length,销量:sales,差评率:salesRate(g.records.length,sales),已删除数量:g.records.filter(isDeleted).length,产品占比:pct(g.records.length,all.length),已删除占比:pct(g.records.filter(isDeleted).length,deletedAll)};}));
+const reviewShareHeader = ['周次','产品','新增差评数','销量','差评率','已删除数量','产品占比','已删除占比'];
+data.review_share = table(reviewShareHeader, rowsFromGroups(productReviewGroups).map((g)=>{const all=reviewWeeks.get(g.week)||[];const deletedAll=all.filter(isDeleted).length;const sales=salesForWeekRecords(g.records,g.week).sales;return {周次:g.week,产品:g.product,新增差评数:g.records.length,销量:sales,差评率:salesRate(g.records.length,sales),已删除数量:g.records.filter(isDeleted).length,产品占比:pct(g.records.length,all.length),已删除占比:pct(g.records.filter(isDeleted).length,deletedAll)};}));
 
 const ownerWeekHeader = ['周次','负责人','负责产品','申诉数量','已删除数量','申诉成功率','状态空白数','待跟进数'];
 data.owner_week = table(ownerWeekHeader, [...ownerWeeks.values()].sort((a,b)=>(a.week==='申诉周未填写'?1:0)-(b.week==='申诉周未填写'?1:0)||weekSort(a.week,b.week)||compareText(a.owner,b.owner)).map((g)=>{const appeals=g.records.filter(isAppeal),deleted=g.records.filter(isDeleted).length;return {周次:g.week,负责人:g.owner,负责产品:[...new Set(g.records.map((r)=>r.reportProduct))].sort(compareText).join('、'),申诉数量:appeals.length,已删除数量:deleted,申诉成功率:appeals.length?pct(deleted,appeals.length):null,状态空白数:appeals.filter((r)=>!explicitSubmitted(r)).length,待跟进数:appeals.filter(statusPending).length};}));
@@ -262,7 +282,9 @@ data.notes = [
 ];
 data.link_notes = [['说明','判定规则'],['已删除（含二次申诉）','源表“申诉状态”或“二次申诉状态”任一字段包含“已删除”。'],['其中二次申诉删除','仅“二次申诉状态”包含“已删除”的记录数量。'],['未删除','两个状态字段均为空、未回复、已拒绝或其他非“已删除”状态。']];
 data.meta = { ...(data.meta || {}), recordCount:records.length, productCount:productSummaryRows.length, weekCount:new Set([...appealWeeks.keys(),...reviewWeeks.keys()]).size, refreshedAt:new Date().toISOString(), deletionBasis:'source_table_status', sourceStatusCounts, frontendVerification:{total:records.length,...sourceStatusCounts,deleted:deletedCount,primaryDeleted:primaryDeletedCount,secondAppealDeleted:secondAppealDeletedCount,secondAppealOnlyDeleted:secondAppealOnlyDeletedCount} };
+data.meta.defaultWeek = defaultWeek;
+data.meta.currentFullWeek = currentFullWeek;
 fs.writeFileSync(basePath, JSON.stringify(data, null, 2), 'utf8');
-console.log(JSON.stringify({records:records.length,appealRecords:records.filter(isAppeal).length,reviewRecords:records.filter(isReview).length,deleted:deletedCount,primaryDeleted:primaryDeletedCount,secondAppealDeleted:secondAppealDeletedCount,secondAppealOnlyDeleted:secondAppealOnlyDeletedCount,sourceStatuses:sourceStatusCounts,products:productSummaryRows.length,productWeeks:productWeekRows.length,appealWeeks:appealWeeks.size,reviewWeeks:reviewWeeks.size,ownerWeeks:data.owner_week.length-1},null,2));
+console.log(JSON.stringify({records:records.length,appealRecords:records.filter(isAppeal).length,reviewRecords:records.filter(isReview).length,deleted:deletedCount,primaryDeleted:primaryDeletedCount,secondAppealDeleted:secondAppealDeletedCount,secondAppealOnlyDeleted:secondAppealOnlyDeletedCount,sourceStatuses:sourceStatusCounts,products:productSummaryRows.length,productWeeks:productReviewWeekRows.length,appealWeeks:appealWeeks.size,reviewWeeks:reviewWeeks.size,ownerWeeks:data.owner_week.length-1},null,2));
 
 

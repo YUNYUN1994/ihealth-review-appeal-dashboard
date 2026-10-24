@@ -231,6 +231,8 @@ h1,.hero h1{
 .filterbar{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin:0 0 5px;padding:0 0 14px;border-bottom:1px solid #edf0f2}
 .filterbar>div:first-child{min-width:220px}.filterbar .filters{display:flex;justify-content:flex-end;align-items:center;gap:9px;flex-wrap:wrap}
 .filterbar label{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:11px;font-weight:750;white-space:nowrap}
+.filterbar select[multiple]{min-width:190px;min-height:96px;padding:7px 8px}
+.filter-help{color:var(--muted);font-size:11px;align-self:center}
 select{min-width:154px;min-height:40px;border:1px solid var(--line-strong);border-radius:9px;padding:0 34px 0 11px;background:#fff;color:var(--ink-2);font-size:12px;cursor:pointer;box-shadow:0 1px 2px rgba(16,23,32,.03)}
 select:hover{border-color:#aeb6bd}
 .filter-apply{min-height:40px;padding:0 16px;border:1px solid #d7440a;border-radius:9px;background:#f4511e;color:#fff;font-size:12px;font-weight:750;cursor:pointer;box-shadow:0 2px 5px rgba(198,61,11,.14);transition:background .15s ease,transform .15s ease}
@@ -328,11 +330,12 @@ function sortTable(th){
   normal.concat(totals).forEach(row=>tbody.appendChild(row));
 }
 function selectHtml(id,label,options,selected){return '<label>'+esc(label)+' <select id="'+id+'">'+options.map(o=>'<option value="'+esc(o.value)+'" '+(o.value===selected?'selected':'')+'>'+esc(o.label)+'</option>').join('')+'</select></label>';}
+function multiSelectHtml(id,label,values,selected=[]){const chosen=new Set(selected);return '<label>'+esc(label)+' <select id="'+id+'" multiple size="4" aria-label="'+esc(label)+'">'+values.map(v=>'<option value="'+esc(v)+'" '+(chosen.has(v)?'selected':'')+'>'+esc(v)+'</option>').join('')+'</select></label><span class="filter-help">可按 Ctrl/⌘ 多选</span>';}
 function applyFiltersButtonHtml(id){return '<button type="button" class="filter-apply" id="'+id+'" data-pending="false" aria-live="polite">筛选</button>'; }
 function bindApplyFilters(buttonId,filterIds,render){const button=document.getElementById(buttonId);filterIds.forEach(id=>document.getElementById(id).addEventListener('change',()=>{button.dataset.pending='true';button.textContent='应用筛选';}));button.addEventListener('click',()=>{render();button.dataset.pending='false';button.textContent='已更新';});}
 function distinct(rows,key){return [...new Set(rows.map(r=>r[key]).filter(Boolean))];}
 function tableRows(table){const rows=Array.isArray(table)?table:[];const headers=rows[0]||[];return rows.slice(1).map(row=>Object.fromEntries(headers.map((key,i)=>[key,row[i]])));}
-const productWeek=tableRows(DATA.product_week),productSummary=tableRows(DATA.product_summary),appealShare=tableRows(DATA.appeal_share),appealTotal=tableRows(DATA.appeal_total),reviewShare=tableRows(DATA.review_share),reviewTotal=tableRows(DATA.review_total),ownerWeek=tableRows(DATA.owner_week),notes=tableRows(DATA.notes),linkNotes=tableRows(DATA.link_notes);
+const productWeek=tableRows(DATA.product_review_week||DATA.product_week),productSummary=tableRows(DATA.product_summary),appealShare=tableRows(DATA.appeal_share),appealTotal=tableRows(DATA.appeal_total),reviewShare=tableRows(DATA.review_share),reviewTotal=tableRows(DATA.review_total),ownerWeek=tableRows(DATA.owner_week),notes=tableRows(DATA.notes),linkNotes=tableRows(DATA.link_notes);
 function weekCode(label){return String(label||'').slice(0,8);}
 const allWeeks=[...new Set([].concat(productWeek,appealShare,reviewShare,ownerWeek).map(r=>r['周次']).filter(Boolean))].sort((a,b)=>weekCode(a).localeCompare(weekCode(b)));
 const latestWeek=allWeeks[allWeeks.length-1]||'';
@@ -340,60 +343,64 @@ const allProducts=[...new Set([].concat(productWeek,appealShare,reviewShare,owne
 const allOwners=distinct(ownerWeek,'负责人').sort((a,b)=>a.localeCompare(b,'zh-CN'));
 function optionsFor(values,allLabel){return [{value:'',label:allLabel}].concat(values.map(v=>({value:v,label:v})));}
 function filterRows(rows,week,product){return rows.filter(r=>(!week||r['周次']===week)&&(!product||r['产品']===product));}
+function selectedValues(id){return [...document.getElementById(id).selectedOptions].map(o=>o.value).filter(Boolean);}
+function filterRowsMulti(rows,weeks,products){const weekSet=new Set(weeks),productSet=new Set(products);return rows.filter(r=>(!weekSet.size||weekSet.has(r['周次']))&&(!productSet.size||productSet.has(r['产品'])));}
 function ratio(n,d){return d?Number((n/d).toFixed(8)):null;}
-function totalProductSummaryRow(rows){const appeal=sum(rows,'申诉记录总数'),deleted=sum(rows,'已删除总数');return {__total:true,产品:'总计',负责人:'全部负责人',留评差评总数:sum(rows,'留评差评总数'),申诉记录总数:appeal,明确已提交总数:sum(rows,'明确已提交总数'),已删除总数:deleted,申诉成功率:ratio(deleted,appeal),'1星':sum(rows,'1星'),'2星':sum(rows,'2星'),'3星':sum(rows,'3星'),'4星':sum(rows,'4星'),'5星':sum(rows,'5星'),'星级未知':sum(rows,'星级未知'),申诉方向总结:'—'};}
-function totalProductWeekRow(rows,label){const appeal=sum(rows,'申诉记录数'),deleted=sum(rows,'申诉删除数');return {__total:true,周次:label||'总计',产品:'总计',负责人:'全部负责人',留评差评数:sum(rows,'留评差评数'),申诉记录数:appeal,明确已提交数:sum(rows,'明确已提交数'),申诉删除数:deleted,申诉成功率:ratio(deleted,appeal),'1星':sum(rows,'1星'),'2星':sum(rows,'2星'),'3星':sum(rows,'3星'),'4星':sum(rows,'4星'),'5星':sum(rows,'5星'),'星级未知':sum(rows,'星级未知'),申诉方向总结:'—'};}
+function totalProductSummaryRow(rows){const appeal=sum(rows,'累计申诉数量'),deleted=sum(rows,'累计删除数量');return {__total:true,产品:'总计',累计申诉数量:appeal,累计删除数量:deleted,累计成功率:ratio(deleted,appeal),申诉类型一览:'—',成功比例最高的申诉类型:'—',本周新增差评:sum(rows,'本周新增差评'),本周销量:sumKnown(rows,'本周销量'),本周差评率:ratio(sum(rows,'本周新增差评'),sumKnown(rows,'本周销量'))};}
+function totalProductWeekRow(rows,label){const submitted=sum(rows,'当周提交差评数'),deleted=sum(rows,'当周删除数');return {__total:true,周次:label||'总计',产品:'总计',当周销量:sumKnown(rows,'当周销量'),当周新增差评:sum(rows,'当周新增差评'),当周提交差评数:submitted,当周删除数:deleted,删除成功率:ratio(deleted,submitted),申诉类型一览:'—',成功比例最高的申诉类型:'—'};}
 function totalAppealRow(rows,label){const n=sum(rows,'周申诉总数'),deleted=sum(rows,'周已删除数');return {__total:true,周次:'总计',周申诉总数:n,明确已提交数:sum(rows,'明确已提交数'),周已删除数:deleted,申诉成功率:ratio(deleted,n)};}
 function totalAppealShareRow(rows,label){const n=sum(rows,'申诉数量'),deleted=sum(rows,'已删除数量');return {__total:true,周次:label||'总计',产品:'总计',负责人:'全部负责人',申诉数量:n,已删除数量:deleted,申诉占比:ratio(n,n),已删除占比:ratio(deleted,deleted)};}
 function sumKnown(rows,key){const values=rows.map(r=>r[key]).filter(v=>v!==null&&v!==undefined&&v!=='').map(Number).filter(Number.isFinite);return values.length?values.reduce((a,b)=>a+b,0):null;}
 function totalReviewRow(rows,label){const n=sum(rows,'周新增差评数'),sales=sumKnown(rows,'周销量'),deleted=sum(rows,'周已删除数');return {__total:true,周次:'总计',周新增差评数:n,周销量:sales,差评率:ratio(n,sales),周已删除数:deleted,已删除率:ratio(deleted,n)};}
 function aggregateSelectedProductWeeks(rows,week,product,fields){const map=new Map();filterRows(rows,week,product).forEach(r=>{const key=r['周次'];if(!map.has(key))map.set(key,{周次:key});const out=map.get(key);fields.forEach(field=>out[field]=(out[field]||0)+Number(r[field]||0));});return [...map.values()].sort((a,b)=>String(a.周次).localeCompare(String(b.周次)));}
-function appealTotalsForFilter(week,product){if(!product)return appealTotal.filter(r=>!week||r['周次']===week);const totals=aggregateSelectedProductWeeks(productWeek,week,product,['申诉记录数','明确已提交数','申诉删除数']);return totals.map(r=>({周次:r.周次,周申诉总数:r['申诉记录数'],明确已提交数:r['明确已提交数'],周已删除数:r['申诉删除数'],申诉成功率:ratio(r['申诉删除数'],r['申诉记录数'])}));}
+function appealTotalsForFilter(week,product){
+  const rows=filterRows(appealShare,week,product), groups=new Map();
+  rows.forEach(r=>{const key=r['周次'];if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r);});
+  return [...groups.entries()].map(([w,items])=>{const appeals=sum(items,'申诉数量'),deleted=sum(items,'已删除数量');return {周次:w,周申诉总数:appeals,明确已提交数:appeals,周已删除数:deleted,申诉成功率:ratio(deleted,appeals)};}).sort((a,b)=>String(a.周次).localeCompare(String(b.周次)));
+}
 function reviewTotalsForFilter(week,product){if(!product)return reviewTotal.filter(r=>!week||r['周次']===week);const grouped=new Map();filterRows(reviewShare,week,product).forEach(r=>{const key=r['周次'];if(!grouped.has(key))grouped.set(key,[]);grouped.get(key).push(r);});return [...grouped.entries()].map(([w,items])=>{const n=sum(items,'新增差评数'),sales=sumKnown(items,'销量'),deleted=sum(items,'已删除数量');return {周次:w,周新增差评数:n,周销量:sales,差评率:ratio(n,sales),周已删除数:deleted,已删除率:ratio(deleted,n)};}).sort((a,b)=>String(a.周次).localeCompare(String(b.周次)));}
 
 function totalReviewShareRow(rows,label){const n=sum(rows,'新增差评数'),sales=sumKnown(rows,'销量'),deleted=sum(rows,'已删除数量');return {__total:true,周次:label||'总计',产品:'总计',负责人:'全部负责人',新增差评数:n,销量:sales,差评率:ratio(n,sales),已删除数量:deleted,产品占比:ratio(n,n),已删除占比:ratio(deleted,deleted)};}
 function totalOwnerRow(rows,label){const n=sum(rows,'申诉数量'),deleted=sum(rows,'已删除数量');return {__total:true,周次:'总计',负责人:'总计',负责产品:'全部产品',申诉数量:n,已删除数量:deleted,申诉成功率:ratio(deleted,n),状态空白数:sum(rows,'状态空白数'),待跟进数:sum(rows,'待跟进数')};}
-function renderKpis(){const totalReviews=productSummary.reduce((a,r)=>a+Number(r['留评差评总数']||0),0), appeals=productSummary.reduce((a,r)=>a+Number(r['申诉记录总数']||0),0), deleted=productSummary.reduce((a,r)=>a+Number(r['已删除总数']||0),0), submitted=productSummary.reduce((a,r)=>a+Number(r['明确已提交总数']||0),0);document.getElementById('kpis').innerHTML=[['差评记录',fmtNum(totalReviews),'已合并去重评论链接','blue'],['申诉记录',fmtNum(appeals),'有申诉日期的记录','orange'],['已明确提交',fmtNum(submitted),'已提交 / 已删除 / 已拒绝','blue'],['已删除（含二次申诉）',fmtNum(deleted),'申诉状态或二次申诉状态含“已删除”；其中二次申诉单独删除 '+fmtNum(DATA.meta?.frontendVerification?.secondAppealOnlyDeleted||0)+' 条','green'],['申诉成功率',fmtPct(appeals?deleted/appeals:null),'已删除 ÷ 申诉记录','red']].map(x=>'<div class="kpi '+x[3]+'"><div class="label">'+x[0]+'</div><div class="value">'+x[1]+'</div><div class="hint">'+x[2]+'</div></div>').join('');}
-function renderOverview(){const top=[...productSummary].sort((a,b)=>Number(b['留评差评总数'])-Number(a['留评差评总数'])).slice(0,8), max=Math.max(...top.map(r=>Number(r['留评差评总数']||0)),1);const topDirections={};for(const r of productSummary){const s=String(r['申诉方向总结']||'');s.split('；').forEach(p=>{const m=p.match(/^(.+?) (\d+)条/);if(m)topDirections[m[1]]=(topDirections[m[1]]||0)+Number(m[2]);});}const dirs=Object.entries(topDirections).sort((a,b)=>b[1]-a[1]).slice(0,6);document.getElementById('overview').innerHTML='<div class="grid2"><div class="card"><h2>产品差评量排名</h2><p class="desc">按合并去重后的留评记录数排序。</p><div class="barlist">'+top.map(r=>'<div class="barrow"><div class="barlabel">'+esc(r['产品'])+'</div><div class="bartrack"><div class="barfill" style="width:'+Math.max(3,Number(r['留评差评总数']||0)/max*100)+'%"></div></div><div class="barvalue"><strong>'+fmtNum(r['留评差评总数'])+' 条</strong><span class="bar-sub">已删除 '+fmtNum(r['已删除总数'])+' 条</span></div></div>').join('')+'</div></div><div class="card"><h2>申诉方向归纳</h2><p class="desc">同一条记录可能同时命中多个方向；这里展示各产品方向计数的合计，仅用于快速识别共性问题。</p><div class="direction-list">'+(dirs.length?dirs.map(d=>'<span class="direction">'+esc(d[0])+' '+fmtNum(d[1])+'条</span>').join(''):'<span class="muted">暂无可归类方向</span>')+'</div><div class="callout"><strong>阅读提示：</strong> 产品、申诉时间、留评时间、负责人页的周次×产品明细默认只展示最新周，可通过周次和产品筛选切换；各维度均提供“总计”行。</div></div></div><div class="card"><h2>产品总览</h2><p class="desc">方向总结已做归纳，不展示原始组合文本；空白申诉方向不纳入方向分析。</p>'+table(productSummary.concat(totalProductSummaryRow(productSummary)),[{key:'产品',label:'产品'},{key:'负责人',label:'负责人'},{key:'留评差评总数',label:'差评数',type:'num',num:true},{key:'申诉记录总数',label:'申诉记录',type:'num',num:true},{key:'已删除总数',label:'已删除',type:'num',num:true},{key:'申诉成功率',label:'成功率',type:'pct',num:true},{key:'1星',label:'1星',type:'num',num:true},{key:'2星',label:'2星',type:'num',num:true},{key:'3星',label:'3星',type:'num',num:true},{key:'4星',label:'4星',type:'num',num:true},{key:'5星',label:'5星',type:'num',num:true},{key:'星级未知',label:'未知星级',type:'num',num:true},{key:'申诉方向总结',label:'申诉方向总结',compact:true}])+'</div>'}
-function mergeDirectionSummaries(rows){
+function renderKpis(){
+  const totalAppeals=sum(productSummary,'累计申诉数量'),totalDeleted=sum(productSummary,'累计删除数量'),defaultWeek=DATA.meta?.defaultWeek||latestWeek;
+  const weeklyAppeal=appealTotal.find(r=>r['周次']===defaultWeek)||{},weeklyAppeals=Number(weeklyAppeal['周申诉总数']||0),weeklyDeleted=Number(weeklyAppeal['周已删除数']||0);
+  document.getElementById('kpis').innerHTML=[
+    ['累计申诉数量',fmtNum(totalAppeals),'全部已记录申诉','blue'],['累计删除数量',fmtNum(totalDeleted),'包含二次申诉状态已删除','green'],['累计成功率',fmtPct(ratio(totalDeleted,totalAppeals)),'累计删除 ÷ 累计申诉','red'],
+    ['本周申诉数量',fmtNum(weeklyAppeals),'完整周 '+defaultWeek,'orange'],['本周删除数量',fmtNum(weeklyDeleted),'按源表状态统计','green'],['本周成功率',fmtPct(ratio(weeklyDeleted,weeklyAppeals)),'本周删除 ÷ 本周申诉','red']
+  ].map(x=>'<div class="kpi '+x[3]+'"><div class="label">'+x[0]+'</div><div class="value">'+x[1]+'</div><div class="hint">'+x[2]+'</div></div>').join('');
+}
+function renderOverview(){
+  const top=[...productSummary].sort((a,b)=>Number(b['本周新增差评']||0)-Number(a['本周新增差评']||0)).slice(0,8),max=Math.max(...top.map(r=>Number(r['本周新增差评']||0)),1),topDirections={};
+  for(const r of productSummary){String(r['申诉类型一览']||'').split('；').forEach(p=>{const m=p.match(/^(.+?)\s+(\d+)条/);if(m)topDirections[m[1]]=(topDirections[m[1]]||0)+Number(m[2]);});}
+  const dirs=Object.entries(topDirections).sort((a,b)=>b[1]-a[1]).slice(0,6),cols=[{key:'产品',label:'产品'},{key:'累计申诉数量',label:'累计申诉',type:'num',num:true},{key:'累计删除数量',label:'累计删除',type:'num',num:true},{key:'累计成功率',label:'累计成功率',type:'pct',num:true},{key:'申诉类型一览',label:'申诉类型一览',compact:true},{key:'成功比例最高的申诉类型',label:'最高成功比例类型'},{key:'本周新增差评',label:'本周新增差评',type:'num',num:true},{key:'本周销量',label:'本周销量',type:'num',num:true},{key:'本周差评率',label:'本周差评率',type:'pct',num:true}];
+  document.getElementById('overview').innerHTML='<div class="grid2"><div class="card"><h2>本周新增差评排名</h2><p class="desc">按默认完整周的新增差评数量排序。</p><div class="barlist">'+top.map(r=>'<div class="barrow"><div class="barlabel">'+esc(r['产品'])+'</div><div class="bartrack"><div class="barfill" style="width:'+Math.max(3,Number(r['本周新增差评']||0)/max*100)+'%"></div></div><div class="barvalue"><strong>'+fmtNum(r['本周新增差评'])+' 条</strong><span class="bar-sub">累计删除 '+fmtNum(r['累计删除数量'])+' 条</span></div></div>').join('')+'</div></div><div class="card"><h2>申诉类型归纳</h2><p class="desc">空白申诉方向不纳入统计；一条记录命中多个类型时分别计数。</p><div class="direction-list">'+(dirs.length?dirs.map(d=>'<span class="direction">'+esc(d[0])+' '+fmtNum(d[1])+'条</span>').join(''):'<span class="muted">暂无可归类方向</span>')+'</div><div class="callout"><strong>默认周：</strong> '+esc(DATA.meta?.defaultWeek||latestWeek)+'；产品周明细支持多选周次和产品后点击“筛选”。</div></div></div><div class="card"><h2>产品总览</h2><p class="desc">产品按全部负责人合并统计，不展示星级拆分。</p>'+table(productSummary.concat(totalProductSummaryRow(productSummary)),cols)+'</div>';
+}function mergeDirectionSummaries(rows){
   const counts={};
   rows.forEach(r=>String(r['申诉方向总结']||'').split('；').forEach(part=>{const m=part.match(/^(.+?)\s+(\d+)条/);if(m&&m[1].trim())counts[m[1].trim()]=(counts[m[1].trim()]||0)+Number(m[2]);}));
   const total=Object.values(counts).reduce((a,b)=>a+b,0);
   return Object.entries(counts).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'zh-CN')).map(([label,count])=>label+' '+count+'条（'+(count/total*100).toFixed(1)+'%）').join('；')||'—';
 }
-function productSummaryForFilter(week,product){
-  if(!week)return productSummary.filter(r=>!product||r['产品']===product);
-  const groups=new Map();
-  filterRows(productWeek,week,product).forEach(r=>{
-    const key=r['产品'];
-    if(!groups.has(key))groups.set(key,{产品:key,负责人:'全部负责人',留评差评总数:0,申诉记录总数:0,明确已提交总数:0,已删除总数:0,'1星':0,'2星':0,'3星':0,'4星':0,'5星':0,星级未知:0,__directionRows:[]});
-    const out=groups.get(key);
-    out.留评差评总数+=Number(r['留评差评数']||0);
-    out.申诉记录总数+=Number(r['申诉记录数']||0);
-    out.明确已提交总数+=Number(r['明确已提交数']||0);
-    out.已删除总数+=Number(r['申诉删除数']||0);
-    ['1星','2星','3星','4星','5星','星级未知'].forEach(field=>out[field]+=Number(r[field]||0));
-    out.__directionRows.push(r);
-  });
-  return [...groups.values()].map(row=>{const directionRows=row.__directionRows;delete row.__directionRows;return {...row,申诉成功率:ratio(row.已删除总数,row.申诉记录总数),申诉方向总结:mergeDirectionSummaries(directionRows)};});
+function productSummaryForFilter(weeks,products){
+  const selected=new Set(products),rows=productSummary.filter(r=>!selected.size||selected.has(r['产品']));
+  if(!weeks.length)return rows;
+  const weekRows=filterRowsMulti(productWeek,weeks,products),groups=new Map();
+  weekRows.forEach(r=>{if(!groups.has(r['产品']))groups.set(r['产品'],[]);groups.get(r['产品']).push(r);});
+  return rows.map(base=>{const selectedRows=groups.get(base['产品'])||[],reviews=sum(selectedRows,'当周新增差评'),sales=sumKnown(selectedRows,'当周销量');return {...base,本周新增差评:reviews,本周销量:sales,本周差评率:ratio(reviews,sales)};});
 }
 function renderProduct(){
-  const productOpts=optionsFor(allProducts,'全部产品');
-  const weekOpts=optionsFor(allWeeks,'全部周次');
-  const productCols=[{key:'产品',label:'产品'},{key:'留评差评总数',label:'差评数',type:'num',num:true},{key:'申诉记录总数',label:'申诉记录',type:'num',num:true},{key:'明确已提交总数',label:'明确已提交',type:'num',num:true},{key:'已删除总数',label:'已删除',type:'num',num:true},{key:'申诉成功率',label:'成功率',type:'pct',num:true},{key:'1星',label:'1星',type:'num',num:true},{key:'2星',label:'2星',type:'num',num:true},{key:'3星',label:'3星',type:'num',num:true},{key:'4星',label:'4星',type:'num',num:true},{key:'5星',label:'5星',type:'num',num:true},{key:'星级未知',label:'未知星级',type:'num',num:true},{key:'申诉方向总结',label:'申诉方向总结'}];
-  const productWeekCols=[{key:'周次',label:'周次'},{key:'产品',label:'产品'},{key:'留评差评数',label:'来差评',type:'num',num:true},{key:'申诉记录数',label:'申诉记录',type:'num',num:true},{key:'明确已提交数',label:'明确已提交',type:'num',num:true},{key:'申诉删除数',label:'已删除',type:'num',num:true},{key:'申诉成功率',label:'成功率',type:'pct',num:true},{key:'1星',label:'1星',type:'num',num:true},{key:'2星',label:'2星',type:'num',num:true},{key:'3星',label:'3星',type:'num',num:true},{key:'4星',label:'4星',type:'num',num:true},{key:'5星',label:'5星',type:'num',num:true},{key:'星级未知',label:'未知星级',type:'num',num:true},{key:'申诉方向总结',label:'申诉方向总结'}];
-  document.getElementById('product').innerHTML='<div class="card"><div class="filterbar"><div><h2>产品汇总</h2><p class="desc">按产品合并所有负责人的记录；周次和产品筛选会同时更新产品汇总、产品周报明细和总计。</p></div><div class="filters">'+selectHtml('productWeekFilter','周次',weekOpts,latestWeek)+selectHtml('productProductFilter','产品',productOpts,'')+applyFiltersButtonHtml('productApplyFilters')+'</div></div><div id="productSummaryBox"></div></div><div class="card"><div><h2>产品周报明细</h2><p class="desc">同一周按产品合并统计，不按负责人拆分；分别按评论日期统计来差评、按申诉日期统计申诉。</p></div><div id="productTotalBox"></div><div id="productTable"></div></div>';
+  const productCols=[{key:'产品',label:'产品'},{key:'累计申诉数量',label:'累计申诉',type:'num',num:true},{key:'累计删除数量',label:'累计删除',type:'num',num:true},{key:'累计成功率',label:'累计成功率',type:'pct',num:true},{key:'申诉类型一览',label:'申诉类型一览',compact:true},{key:'成功比例最高的申诉类型',label:'最高成功比例类型'},{key:'本周新增差评',label:'本周新增差评',type:'num',num:true},{key:'本周销量',label:'本周销量',type:'num',num:true},{key:'本周差评率',label:'本周差评率',type:'pct',num:true}];
+  const productWeekCols=[{key:'周次',label:'留评周'},{key:'产品',label:'产品'},{key:'当周销量',label:'当周销量',type:'num',num:true},{key:'当周新增差评',label:'新增差评',type:'num',num:true},{key:'当周提交差评数',label:'提交申诉',type:'num',num:true},{key:'当周删除数',label:'已删除',type:'num',num:true},{key:'删除成功率',label:'删除成功率',type:'pct',num:true},{key:'申诉类型一览',label:'申诉类型一览',compact:true},{key:'成功比例最高的申诉类型',label:'最高成功比例类型'}];
+  const defaultWeek=DATA.meta?.defaultWeek||latestWeek;
+  document.getElementById('product').innerHTML='<div class="card"><div class="filterbar"><div><h2>产品汇总</h2><p class="desc">按产品合并所有负责人的记录；选择多个留评周和产品后点击“筛选”更新。</p></div><div class="filters">'+multiSelectHtml('productWeekFilter','留评周（可多选）',allWeeks,[defaultWeek])+multiSelectHtml('productProductFilter','产品（可多选）',allProducts,[])+applyFiltersButtonHtml('productApplyFilters')+'</div></div><div id="productSummaryBox"></div></div><div class="card"><div><h2>产品周报明细</h2><p class="desc">以留评周为时间锚点，周销量来自领星周度订单利润表。</p></div><div id="productTotalBox"></div><div id="productTable"></div></div>';
   const render=()=>{
-    const w=document.getElementById('productWeekFilter').value,p=document.getElementById('productProductFilter').value;
-    const summaryRows=productSummaryForFilter(w,p), rows=filterRows(productWeek,w,p);
+    const weeks=selectedValues('productWeekFilter'),products=selectedValues('productProductFilter'),summaryRows=productSummaryForFilter(weeks,products),rows=filterRowsMulti(productWeek,weeks,products);
     document.getElementById('productSummaryBox').innerHTML=table(summaryRows.concat(totalProductSummaryRow(summaryRows)),productCols);
-    document.getElementById('productTotalBox').innerHTML=totalCard('产品维度当前筛选合计',[['来差评',fmtNum(sum(rows,'留评差评数'))],['申诉记录',fmtNum(sum(rows,'申诉记录数'))],['已删除',fmtNum(sum(rows,'申诉删除数'))],['成功率',fmtPct(ratio(sum(rows,'申诉删除数'),sum(rows,'申诉记录数')))],['1-3星',fmtNum(sum(rows,'1星')+sum(rows,'2星')+sum(rows,'3星'))]]);
-    document.getElementById('productTable').innerHTML=table(rows.concat(totalProductWeekRow(rows,w||'全部周次')),productWeekCols);
+document.getElementById('productTotalBox').innerHTML=totalCard('产品维度当前筛选合计',[['当周销量',fmtNum(sumKnown(rows,'当周销量'))],['新增差评',fmtNum(sum(rows,'当周新增差评'))],['提交申诉',fmtNum(sum(rows,'当周提交差评数'))],['已删除',fmtNum(sum(rows,'当周删除数'))],['删除成功率',fmtPct(ratio(sum(rows,'当周删除数'),sum(rows,'当周提交差评数')))]])+'<div class="filter-help">当前筛选周次：'+esc(weeks.length?weeks.join('、'):'全部周次')+'</div>';
+    document.getElementById('productTable').innerHTML=table(rows.concat(totalProductWeekRow(rows,weeks.length===1?weeks[0]:'总计')),productWeekCols);
   };
-  bindApplyFilters('productApplyFilters',['productWeekFilter','productProductFilter'],render);
-  render();
-}
-function renderAppeal(){
+  bindApplyFilters('productApplyFilters',['productWeekFilter','productProductFilter'],render);render();
+}function renderAppeal(){
   const weekOpts=optionsFor(allWeeks,'全部周次'), productOpts=optionsFor(allProducts,'全部产品');
   document.getElementById('appeal').innerHTML='<div class="card"><div class="filterbar"><div><h2>申诉时间维度</h2><p class="desc">以申诉周为时间锚点；选择周次和产品查看申诉量、已删除量及产品占比。</p></div><div class="filters">'+selectHtml('appealWeekFilter','周次',weekOpts,latestWeek)+selectHtml('appealProductFilter','产品',productOpts,'')+applyFiltersButtonHtml('appealApplyFilters')+'</div></div><div id="appealTotalBox"></div><div id="appealShareBox"></div></div>';
   const render=()=>{
@@ -406,7 +413,7 @@ function renderAppeal(){
       ['成功率',fmtPct(ratio(sum(totals,'周已删除数'),sum(totals,'周申诉总数')))]
     ]);
     document.getElementById('appealTotalBox').innerHTML=totalHtml+table(totals.concat(totalAppealRow(totals,label)),[{key:'周次',label:'申诉周'},{key:'周申诉总数',label:'申诉数',type:'num',num:true},{key:'明确已提交数',label:'明确已提交',type:'num',num:true},{key:'周已删除数',label:'已删除',type:'num',num:true},{key:'申诉成功率',label:'周成功率',type:'pct',num:true}]);
-    document.getElementById('appealShareBox').innerHTML='<h3>申诉周 × 产品占比</h3>'+table(shares.concat(totalAppealShareRow(shares,label)),[{key:'周次',label:'申诉周'},{key:'产品',label:'产品'},{key:'负责人',label:'负责人'},{key:'申诉数量',label:'申诉数',type:'num',num:true},{key:'已删除数量',label:'已删除',type:'num',num:true},{key:'申诉占比',label:'产品申诉占比',type:'pct',num:true},{key:'已删除占比',label:'已删除占比',type:'pct',num:true}]);
+    document.getElementById('appealShareBox').innerHTML='<h3>申诉周 × 产品占比</h3>'+table(shares.concat(totalAppealShareRow(shares,label)),[{key:'周次',label:'申诉周'},{key:'产品',label:'产品'},{key:'申诉数量',label:'申诉数',type:'num',num:true},{key:'已删除数量',label:'已删除',type:'num',num:true},{key:'申诉占比',label:'产品申诉占比',type:'pct',num:true},{key:'已删除占比',label:'已删除占比',type:'pct',num:true}]);
   };
   bindApplyFilters('appealApplyFilters',['appealWeekFilter','appealProductFilter'],render);render();
 }
@@ -424,7 +431,7 @@ function renderReview(){
       ['删除率',fmtPct(ratio(sum(totals,'周已删除数'),sum(totals,'周新增差评数')))]
     ]);
     document.getElementById('reviewTotalBox').innerHTML=totalHtml+table(totals.concat(totalReviewRow(totals,label)),[{key:'周次',label:'留评周'},{key:'周新增差评数',label:'新增差评',type:'num',num:true},{key:'周销量',label:'销量',type:'num',num:true},{key:'差评率',label:'差评率',type:'pct',num:true},{key:'周已删除数',label:'已删除',type:'num',num:true},{key:'已删除率',label:'删除占比',type:'pct',num:true}]);
-    document.getElementById('reviewShareBox').innerHTML='<h3>留评周 × 产品占比</h3>'+table(shares.concat(totalReviewShareRow(shares,label)),[{key:'周次',label:'留评周'},{key:'产品',label:'产品'},{key:'负责人',label:'负责人'},{key:'新增差评数',label:'新增差评',type:'num',num:true},{key:'销量',label:'销量',type:'num',num:true},{key:'差评率',label:'差评率',type:'pct',num:true},{key:'已删除数量',label:'已删除',type:'num',num:true},{key:'产品占比',label:'产品占比',type:'pct',num:true},{key:'已删除占比',label:'已删除占比',type:'pct',num:true}]);
+    document.getElementById('reviewShareBox').innerHTML='<h3>留评周 × 产品占比</h3>'+table(shares.concat(totalReviewShareRow(shares,label)),[{key:'周次',label:'留评周'},{key:'产品',label:'产品'},{key:'新增差评数',label:'新增差评',type:'num',num:true},{key:'销量',label:'销量',type:'num',num:true},{key:'差评率',label:'差评率',type:'pct',num:true},{key:'已删除数量',label:'已删除',type:'num',num:true},{key:'产品占比',label:'产品占比',type:'pct',num:true},{key:'已删除占比',label:'已删除占比',type:'pct',num:true}]);
   };
   bindApplyFilters('reviewApplyFilters',['reviewWeekFilter','reviewProductFilter'],render);render();
 }
@@ -436,7 +443,7 @@ function ownerSummaryRows(rows){
 function totalOwnerSummaryRow(rows){const n=sum(rows,'申诉数量'),deleted=sum(rows,'已删除数量');return {__total:true,负责人:'总计',负责产品:'全部产品',申诉数量:n,已删除数量:deleted,申诉成功率:ratio(deleted,n),状态空白数:sum(rows,'状态空白数'),待跟进数:sum(rows,'待跟进数')};}
 function renderOwner(){
   const weekOpts=optionsFor(allWeeks,'全部周次'), productOpts=optionsFor(allProducts,'全部产品');
-  document.getElementById('owner').innerHTML='<div class="card"><div class="filterbar"><div><h2>负责人维度</h2><p class="desc">先看每位负责人的累计结果，再下钻到周次明细；周次、产品、负责人均可筛选。</p></div><div class="filters">'+selectHtml('ownerWeekFilter','周次',weekOpts,'')+selectHtml('ownerProductFilter','产品',productOpts,'')+selectHtml('ownerFilter','负责人',optionsFor(allOwners,'全部负责人'),'')+applyFiltersButtonHtml('ownerApplyFilters')+'</div></div><div id="ownerTotalBox"></div><div id="ownerSummary"></div><div id="ownerTable"></div></div>';
+  document.getElementById('owner').innerHTML='<div class="card"><div class="filterbar"><div><h2>负责人维度</h2><p class="desc">先看每位负责人的申诉周次明细，再查看累计总计；周次、产品、负责人均可筛选。</p></div><div class="filters">'+selectHtml('ownerWeekFilter','周次',weekOpts,'')+selectHtml('ownerProductFilter','产品',productOpts,'')+selectHtml('ownerFilter','负责人',optionsFor(allOwners,'全部负责人'),'')+applyFiltersButtonHtml('ownerApplyFilters')+'</div></div><div id="ownerTotalBox"></div><div id="ownerTable"></div><div id="ownerSummary"></div></div>';
   const render=()=>{
     const w=document.getElementById('ownerWeekFilter').value,p=document.getElementById('ownerProductFilter').value,o=document.getElementById('ownerFilter').value;
     const rows=ownerWeek.filter(r=>(!w||r['周次']===w)&&(!o||r['负责人']===o)&&(!p||String(r['负责产品']||'').split('、').includes(p)));

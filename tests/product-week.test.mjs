@@ -28,23 +28,28 @@ function build(script) {
 const data = build(path.join(root, 'update_frontend_report.mjs'));
 const objects = rows => rows.slice(1).map(row => Object.fromEntries(rows[0].map((key, i) => [key, row[i]])));
 test('product weeks merge owners and recalculate rates and direction shares', () => {
-  assert.ok(!data.product_week[0].includes('负责人'));
-  const rows = objects(data.product_week);
+  assert.deepEqual(data.product_review_week[0], [
+    '周次', '产品', '当周销量', '当周新增差评', '当周提交差评数', '当周删除数',
+    '删除成功率', '申诉类型一览', '成功比例最高的申诉类型',
+  ]);
+  assert.ok(!data.product_review_week[0].includes('负责人'));
+  assert.ok(!data.product_review_week[0].some((key) => /^[1-5]星$/.test(key) || key === '星级未知'));
+  const rows = objects(data.product_review_week);
   assert.equal(rows.length, 3);
   assert.equal(new Set(rows.map(row => `${row.周次}|${row.产品}`)).size, rows.length);
   const row = rows.find(row => row.产品 === '723' && row.周次.startsWith('2026-W42'));
-  assert.equal(row.留评差评数, 4);
-  assert.equal(row.申诉记录数, 3);
-  assert.equal(row.明确已提交数, 3);
-  assert.equal(row.申诉删除数, 2);
-  assert.equal(row.申诉成功率, 0.66666667);
-  assert.equal(row['1星'], 1);
-  assert.equal(row['2星'], 1);
-  assert.equal(row['3星'], 1);
-  assert.equal(row.星级未知, 1);
-  assert.match(row.申诉方向总结, /疑似机器\/机器人号 2条（66.7%）/);
-  assert.match(row.申诉方向总结, /专业差评号 1条（33.3%）/);
-  assert.equal(rows.find(row => row.产品 === '723' && row.周次.startsWith('2026-W43')).申诉方向总结, null);
+  assert.equal(row.当周新增差评, 4);
+  assert.equal(row.当周提交差评数, 3);
+  assert.equal(row.当周删除数, 2);
+  assert.equal(row.删除成功率, 0.66666667);
+  assert.match(row.申诉类型一览, /疑似机器\/机器人号 2条（66.7%）/);
+  assert.match(row.申诉类型一览, /专业差评号 1条（33.3%）/);
+  assert.equal(rows.find(row => row.产品 === '723' && row.周次.startsWith('2026-W43')).申诉类型一览, null);
+  assert.deepEqual(data.product_summary[0], [
+    '产品', '累计申诉数量', '累计删除数量', '累计成功率', '申诉类型一览',
+    '成功比例最高的申诉类型', '本周新增差评', '本周销量', '本周差评率',
+  ]);
+  assert.ok(!data.product_summary[0].some((key) => /^[1-5]星$/.test(key) || key === '星级未知'));
 });
 test('owner totals retain second appeal and undated deletions', () => {
   const rows = objects(data.owner_week);
