@@ -361,30 +361,30 @@ body{background:linear-gradient(180deg,#ffffff 0,#f7f9fa 210px,var(--bg) 520px)}
 .total-label{font-size:9px}
 .total-value{font-size:17px}
 
-.filterbar{align-items:stretch;gap:22px;margin-bottom:7px;padding-bottom:16px}
-.filterbar>div:first-child{flex:1 1 280px;min-width:260px}
-.filterbar .filters{flex:0 1 auto;justify-content:flex-end;align-items:flex-end;gap:8px 10px;max-width:760px}
-.filterbar label{gap:6px;font-size:10px}
-.filterbar select[multiple]{min-width:180px;min-height:88px}
-select{min-width:142px;min-height:38px;border-radius:8px;padding-left:10px;font-size:11px}
-.filter-apply{min-height:38px;padding:0 15px;border-radius:8px;font-size:11px}
+/* Stack context above full-width filters so every field has room to breathe. */
+.filterbar{display:flex;flex-direction:column;align-items:stretch;gap:20px;margin-bottom:7px;padding-bottom:22px}
+.filterbar>div:first-child{flex:none;min-width:0}
+.filterbar .desc{max-width:1100px;margin-bottom:0;line-height:1.8}
+.filterbar .filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;max-width:none;align-items:stretch;gap:16px}
+.filterbar .filters.filters-three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.filterbar label{gap:8px;font-size:12px}
+select{min-width:142px;min-height:38px;border-radius:8px;padding-left:10px;font-size:12px}
+.filter-apply{min-height:42px;padding:0 24px;border-radius:8px;font-size:12px}
 .filter-apply[data-pending="true"]{box-shadow:0 0 0 3px rgba(252,76,2,.12)}
-/* Keep multi-select filters visually separate and give bulk actions a clear home. */
-.filterbar .filters{align-items:stretch;gap:12px}
-.filter-multi{display:flex;flex:1 1 230px;flex-direction:column;gap:7px;min-width:210px;padding:11px;border:1px solid #e1e6e9;border-radius:10px;background:#fbfcfc}
-.filter-multi-head{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
-.filter-multi-title{color:var(--ink-2);font-size:11px;font-weight:800}
-.filter-multi-summary{flex:0 0 auto;color:var(--muted);font-size:10px;font-variant-numeric:tabular-nums}
-.filter-multi-actions{display:flex;gap:6px}
-.filter-multi-action{min-height:28px;padding:0 9px;border:1px solid #d7dfe3;border-radius:7px;background:#fff;color:#46515b;font-size:10px;font-weight:700;cursor:pointer}
+.filter-multi{display:flex;flex-direction:column;gap:10px;min-width:0;padding:16px;border:1px solid #e1e6e9;border-radius:12px;background:#fbfcfc}
+.filter-multi-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;min-width:0}
+.filter-multi-title{color:var(--ink-2);font-size:12px;font-weight:800}
+.filter-multi-summary{flex:0 0 auto;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.filter-multi-actions{display:flex;flex-wrap:wrap;gap:8px}
+.filter-multi-action{min-height:30px;padding:0 11px;border:1px solid #d7dfe3;border-radius:7px;background:#fff;color:#46515b;font-size:11px;font-weight:700;cursor:pointer}
 .filter-multi-action:hover{border-color:#f4511e;color:#b73a0b;background:#fff8f4}
-.filter-multi select[multiple]{display:block;width:100%;min-width:0;min-height:98px;padding:5px;border:1px solid #d7dfe3;border-radius:7px;background:#fff;color:var(--ink-2);font-size:11px;line-height:1.55}
-.filter-multi select[multiple] option{padding:4px 6px;border-radius:4px}
-.filter-multi-hint{color:var(--muted);font-size:10px;line-height:1.4}
+.filter-multi select[multiple]{display:block;width:100%;min-width:0;min-height:118px;padding:7px;border:1px solid #d7dfe3;border-radius:8px;background:#fff;color:var(--ink-2);font-size:12px;line-height:1.6}
+.filter-multi select[multiple] option{padding:5px 8px;border-radius:4px}
+.filter-multi-hint{color:var(--muted);font-size:11px;line-height:1.6}
 .filter-multi select[multiple]:focus-visible,.filter-multi-action:focus-visible{outline:3px solid rgba(252,76,2,.2);outline-offset:2px}
-.filterbar .filter-apply{align-self:flex-end;flex:0 0 auto}
-@media (max-width:1200px){.filterbar .filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}.filterbar .filter-apply{align-self:end}}
-@media (max-width:560px){.filterbar .filters{grid-template-columns:1fr;gap:10px}.filter-multi{min-width:0;width:100%}.filterbar .filter-apply{width:100%}}
+.filterbar .filter-apply{grid-column:1/-1;justify-self:end;align-self:end;min-width:112px;margin-top:2px}
+@media (max-width:1000px){.filterbar .filters.filters-three{grid-template-columns:repeat(2,minmax(0,1fr))}.filters-three .filter-multi:last-of-type{grid-column:1/-1}}
+@media (max-width:560px){.filterbar .filters,.filterbar .filters.filters-three{grid-template-columns:1fr;gap:12px}.filter-multi{padding:14px}.filterbar .filter-apply{width:100%}}
 
 .barlist{gap:12px}
 .barrow{grid-template-columns:minmax(125px,190px) minmax(120px,1fr) minmax(100px,120px);gap:12px}
@@ -637,7 +637,7 @@ function ownerRowsForFilter(weeks,products,owners){
   return [...groups.values()].map(g=>({...g,负责产品:[...new Set(g.产品列表)].join('、'),申诉成功率:ratio(g.已删除数量,g.申诉数量)}));
 }
 function renderOwner(){
-  document.getElementById('owner').innerHTML='<div class="card"><div class="filterbar"><div><h2>负责人维度</h2><p class="desc">先看每位负责人的申诉周次明细，再查看累计总计；周次、产品、负责人均可筛选。</p></div><div class="filters">'+multiSelectHtml('ownerWeekFilter','申诉周',ownerWeekOptions,[])+multiSelectHtml('ownerProductFilter','产品',allProducts,[])+multiSelectHtml('ownerFilter','负责人',allOwners,[])+applyFiltersButtonHtml('ownerApplyFilters')+'</div></div><div id="ownerTotalBox"></div><div id="ownerTable"></div><div id="ownerSummary"></div></div>';
+  document.getElementById('owner').innerHTML='<div class="card"><div class="filterbar"><div><h2>负责人维度</h2><p class="desc">先看每位负责人的申诉周次明细，再查看累计总计；周次、产品、负责人均可筛选。</p></div><div class="filters filters-three">'+multiSelectHtml('ownerWeekFilter','申诉周',ownerWeekOptions,[])+multiSelectHtml('ownerProductFilter','产品',allProducts,[])+multiSelectHtml('ownerFilter','负责人',allOwners,[])+applyFiltersButtonHtml('ownerApplyFilters')+'</div></div><div id="ownerTotalBox"></div><div id="ownerTable"></div><div id="ownerSummary"></div></div>';
   const render=()=>{
     const weeks=selectedValues('ownerWeekFilter'),products=selectedValues('ownerProductFilter'),owners=selectedValues('ownerFilter');
     const rows=ownerRowsForFilter(weeks,products,owners);
