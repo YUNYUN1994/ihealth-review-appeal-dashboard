@@ -162,18 +162,28 @@ const summarizeDirections = (list) => {
     .map(([name, count]) => `${name} ${count}条（${(count / denominator * 100).toFixed(1)}%）`)
     .join('；');
 };
-const topDirection = (list) => {
-  const counts = new Map();
-  let denominator = 0;
-  for (const text of list) {
-    const cats = classifyDirections(text);
+const directionOrder = new Map(directionRules.map(([label], index) => [label, index]));
+const topSuccessfulDirection = (records) => {
+  const stats = new Map();
+  for (const record of records) {
+    const cats = classifyDirections(record.direction);
     if (!cats.length) continue;
-    denominator += 1;
-    for (const cat of cats) counts.set(cat, (counts.get(cat) || 0) + 1);
+    for (const cat of cats) {
+      const stat = stats.get(cat) || { total: 0, deleted: 0 };
+      stat.total += 1;
+      if (isDeleted(record)) stat.deleted += 1;
+      stats.set(cat, stat);
+    }
   }
-  if (!denominator || !counts.size) return null;
-  const [name, count] = [...counts.entries()].sort((a, b) => b[1] - a[1] || compareText(a[0], b[0]))[0];
-  return `${name} ${count}条（${(count / denominator * 100).toFixed(1)}%）`;
+  const candidates = [...stats.entries()].filter(([, stat]) => stat.deleted > 0 && stat.total > 0);
+  if (!candidates.length) return null;
+  const [name, stat] = candidates.sort((a, b) => {
+    const rateOrder = b[1].deleted * a[1].total - a[1].deleted * b[1].total;
+    return rateOrder || b[1].deleted - a[1].deleted || b[1].total - a[1].total
+      || (directionOrder.get(a[0]) ?? directionRules.length) - (directionOrder.get(b[0]) ?? directionRules.length)
+      || compareText(a[0], b[0]);
+  })[0];
+  return `${name} ${stat.deleted}条（${(stat.deleted / stat.total * 100).toFixed(1)}%）`;
 };
 const starCounts = (list) => {
   const out = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, unknown: 0 };
@@ -248,7 +258,7 @@ const productReviewWeekRows = [...productReviewGroups.values()].sort(groupSort).
   const deleted = appeals.filter(isDeleted).length;
   const sales = salesForWeekRecords(g.records, g.week).sales;
   return { 周次:g.week, 产品:g.product, 当周销量:sales, 当周新增差评:g.records.length, 当周提交差评数:appeals.length, 当周删除数:deleted,
-    删除成功率:appeals.length ? pct(deleted, appeals.length) : null, 申诉类型一览:summarizeDirections(appeals.map((r) => r.direction)), 成功比例最高的申诉类型:topDirection(appeals.map((r) => r.direction)) };
+    删除成功率:appeals.length ? pct(deleted, appeals.length) : null, 申诉类型一览:summarizeDirections(appeals.map((r) => r.direction)), 成功比例最高的申诉类型:topSuccessfulDirection(appeals) };
 });
 data.product_review_week = table(productReviewWeekHeader, productReviewWeekRows);
 // 保留旧键，避免旧缓存或旧客户端读取时出现空数据；新页面只使用 product_review_week。
@@ -265,7 +275,7 @@ const productSummaryRows = [...productGroups.values()].sort((a,b)=>compareText(a
   const currentAppeals = current.filter(isAppeal);
   const currentSales = current.length ? salesForWeekRecords(current, defaultWeek).sales : null;
   return { 产品:g.product, 所选留评周申诉数:currentAppeals.length, 累计申诉数量:appeal.length, 所选留评周删除数:currentAppeals.filter(isDeleted).length, 累计删除数量:deleted, 累计成功率:appeal.length ? pct(deleted, appeal.length) : null,
-    申诉类型一览:summarizeDirections(appeal.map((r)=>r.direction)), 成功比例最高的申诉类型:topDirection(appeal.map((r)=>r.direction)),
+    申诉类型一览:summarizeDirections(appeal.map((r)=>r.direction)), 成功比例最高的申诉类型:topSuccessfulDirection(appeal),
     本周新增差评:current.length, 本周销量:currentSales, 本周差评率:salesRate(current.length, currentSales) };
 });
 data.product_summary = table(productSummaryHeader, productSummaryRows);

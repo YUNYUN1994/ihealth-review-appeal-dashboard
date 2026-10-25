@@ -44,12 +44,16 @@ test('product weeks merge owners and recalculate rates and direction shares', ()
   assert.equal(row.删除成功率, 0.66666667);
   assert.match(row.申诉类型一览, /疑似机器\/机器人号 2条（66.7%）/);
   assert.match(row.申诉类型一览, /专业差评号 1条（33.3%）/);
+  assert.equal(row.成功比例最高的申诉类型, '专业差评号 1条（100.0%）');
   assert.equal(rows.find(row => row.产品 === '723' && row.周次.startsWith('2026-W43')).申诉类型一览, null);
+  assert.equal(rows.find(row => row.产品 === '550').成功比例最高的申诉类型, null);
   assert.deepEqual(data.product_summary[0], [
     '产品', '所选留评周申诉数', '累计申诉数量', '所选留评周删除数', '累计删除数量', '累计成功率', '申诉类型一览',
     '成功比例最高的申诉类型', '本周新增差评', '本周销量', '本周差评率',
   ]);
   assert.ok(!data.product_summary[0].some((key) => /^[1-5]星$/.test(key) || key === '星级未知'));
+  const summary = objects(data.product_summary).find(row => row.产品 === '723');
+  assert.equal(summary.成功比例最高的申诉类型, '专业差评号 1条（100.0%）');
 });
 test('owner totals retain second appeal and undated deletions', () => {
   const rows = objects(data.owner_week);

@@ -293,6 +293,177 @@ tr.total-row td{position:sticky;bottom:0;z-index:1;background:#fff0e9;color:#713
 .refresh-status.error{color:#9f2d26;background:var(--red2);border:1px solid #f1c2bd}
 .actions button:disabled{cursor:wait;opacity:.72;transform:none;box-shadow:none}
 
+/* UI refinement: calmer hierarchy, clearer controls, and more even desktop density. */
+:root{
+  --bg:#f2f5f6;
+  --line:#dfe5e8;
+  --line-strong:#c7d0d5;
+  --shadow:0 1px 2px rgba(16,23,32,.035),0 10px 28px rgba(16,23,32,.04);
+  --shadow-hover:0 3px 8px rgba(16,23,32,.07),0 16px 34px rgba(16,23,32,.08);
+  --radius-lg:14px;
+}
+body{background:linear-gradient(180deg,#ffffff 0,#f7f9fa 210px,var(--bg) 520px)}
+.wrap{max-width:1720px;padding:0 38px 64px}
+.hero{
+  position:relative;
+  grid-template-columns:minmax(0,1fr) minmax(420px,auto);
+  gap:36px;
+  align-items:center;
+  min-height:184px;
+  padding:28px 0 26px;
+  margin-bottom:22px;
+  border-bottom:1px solid #d9e0e4;
+}
+.hero:after{content:"";position:absolute;left:0;bottom:-1px;width:74px;height:3px;background:var(--brand);border-radius:3px 3px 0 0}
+.brand-lockup{margin-bottom:15px}
+.brand-context{letter-spacing:.095em}
+.eyebrow{font-size:10px;letter-spacing:.13em}
+.hero h1{font-size:36px;letter-spacing:-.04em;margin:9px 0 8px}
+.sub{font-size:12px}
+.actions{justify-content:flex-end;gap:8px;max-width:620px}
+.actions button{min-height:42px;border-radius:9px;padding:0 14px;font-size:12px}
+.actions button.primary{box-shadow:0 4px 10px rgba(252,76,2,.2)}
+.auto-refresh-status,.refresh-status{min-height:32px;font-size:10px}
+.refresh-toast{right:38px;top:26px}
+
+.kpis{grid-template-columns:repeat(5,minmax(150px,1fr));gap:14px;margin-bottom:22px}
+.kpi{min-height:118px;padding:17px 18px 15px;border-radius:14px;box-shadow:var(--shadow)}
+.kpi:before{top:16px;bottom:16px;width:4px}
+.kpi .label{font-size:11px}
+.kpi .value{margin-top:8px;font-size:29px}
+.kpi .hint{margin-top:8px;font-size:10px}
+
+.tabs{
+  width:100%;
+  max-width:none;
+  justify-content:flex-start;
+  gap:4px;
+  margin-bottom:18px;
+  padding:4px;
+  border-radius:11px;
+  background:rgba(255,255,255,.9);
+  box-shadow:0 3px 14px rgba(16,23,32,.045);
+}
+.tab{min-height:38px;flex:1 1 0;padding:0 16px;border-radius:8px;font-size:12px}
+.tab.active{box-shadow:0 1px 2px rgba(252,76,2,.12),inset 0 0 0 1px #ffd4c2}
+
+.grid2{grid-template-columns:minmax(0,1.08fr) minmax(360px,.92fr);gap:18px;margin-bottom:18px}
+.card{margin-bottom:18px;padding:21px 22px;border-radius:14px;box-shadow:var(--shadow)}
+.card h2{font-size:18px}
+.card h3{margin-top:20px;margin-bottom:10px;font-size:13px}
+.card .desc{margin-bottom:15px;font-size:11px;line-height:1.65}
+.section-title-row{margin-bottom:8px}
+.summary-badge{padding:5px 10px;font-size:10px}
+.total-card{margin:10px 0 17px;padding:13px 15px;border-radius:10px;background:linear-gradient(90deg,#fff6f1,#fff 62%)}
+.total-title{margin-bottom:9px;font-size:11px}
+.total-grid{gap:7px}
+.total-item{padding:8px 9px;border-radius:8px}
+.total-label{font-size:9px}
+.total-value{font-size:17px}
+
+.filterbar{align-items:stretch;gap:22px;margin-bottom:7px;padding-bottom:16px}
+.filterbar>div:first-child{flex:1 1 280px;min-width:260px}
+.filterbar .filters{flex:0 1 auto;justify-content:flex-end;align-items:flex-end;gap:8px 10px;max-width:760px}
+.filterbar label{gap:6px;font-size:10px}
+.filterbar select[multiple]{min-width:180px;min-height:88px}
+select{min-width:142px;min-height:38px;border-radius:8px;padding-left:10px;font-size:11px}
+.filter-apply{min-height:38px;padding:0 15px;border-radius:8px;font-size:11px}
+.filter-apply[data-pending="true"]{box-shadow:0 0 0 3px rgba(252,76,2,.12)}
+/* Keep multi-select filters visually separate and give bulk actions a clear home. */
+.filterbar .filters{align-items:stretch;gap:12px}
+.filter-multi{display:flex;flex:1 1 230px;flex-direction:column;gap:7px;min-width:210px;padding:11px;border:1px solid #e1e6e9;border-radius:10px;background:#fbfcfc}
+.filter-multi-head{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+.filter-multi-title{color:var(--ink-2);font-size:11px;font-weight:800}
+.filter-multi-summary{flex:0 0 auto;color:var(--muted);font-size:10px;font-variant-numeric:tabular-nums}
+.filter-multi-actions{display:flex;gap:6px}
+.filter-multi-action{min-height:28px;padding:0 9px;border:1px solid #d7dfe3;border-radius:7px;background:#fff;color:#46515b;font-size:10px;font-weight:700;cursor:pointer}
+.filter-multi-action:hover{border-color:#f4511e;color:#b73a0b;background:#fff8f4}
+.filter-multi select[multiple]{display:block;width:100%;min-width:0;min-height:98px;padding:5px;border:1px solid #d7dfe3;border-radius:7px;background:#fff;color:var(--ink-2);font-size:11px;line-height:1.55}
+.filter-multi select[multiple] option{padding:4px 6px;border-radius:4px}
+.filter-multi-hint{color:var(--muted);font-size:10px;line-height:1.4}
+.filter-multi select[multiple]:focus-visible,.filter-multi-action:focus-visible{outline:3px solid rgba(252,76,2,.2);outline-offset:2px}
+.filterbar .filter-apply{align-self:flex-end;flex:0 0 auto}
+@media (max-width:1200px){.filterbar .filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}.filterbar .filter-apply{align-self:end}}
+@media (max-width:560px){.filterbar .filters{grid-template-columns:1fr;gap:10px}.filter-multi{min-width:0;width:100%}.filterbar .filter-apply{width:100%}}
+
+.barlist{gap:12px}
+.barrow{grid-template-columns:minmax(125px,190px) minmax(120px,1fr) minmax(100px,120px);gap:12px}
+.bartrack{height:8px}
+.direction{padding:4px 8px;font-size:10px}
+
+.table-toolbar{padding:8px 2px 7px;font-size:10px}
+.table-wrap{border-radius:9px;box-shadow:none}
+table{font-size:10px}
+th,td{padding:9px 10px;line-height:1.4}
+th{background:#f1f4f5;font-size:9px}
+tbody tr:nth-child(even):not(.total-row){background:#fafcfc}
+tbody tr:hover:not(.total-row){background:#fff5ef}
+tr.total-row td{background:#fff1e9;border-top:2px solid #ffc4a9}
+.pill{min-width:48px;padding:3px 6px;font-size:9px}
+.empty{padding:24px;border-radius:9px;font-size:12px}
+.footer{padding-top:20px;font-size:10px}
+
+@media (max-width:1200px){
+  .wrap{padding:0 26px 52px}
+  .hero{grid-template-columns:1fr;gap:18px;align-items:start}
+  .actions{justify-content:flex-start;max-width:none}
+  .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .filterbar{flex-direction:column;gap:12px}
+  .filterbar .filters{justify-content:flex-start;max-width:none}
+}
+@media (max-width:800px){
+  .wrap{padding:0 16px 42px}
+  .hero{min-height:0;padding:20px 0 18px}
+  .hero h1{font-size:30px}
+  .tabs{position:sticky;top:0}
+  .tab{flex:0 0 auto;padding:0 14px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .kpi{min-height:108px;padding:15px}
+  .grid2{grid-template-columns:1fr;gap:0}
+  .card{padding:18px;border-radius:12px}
+  .filterbar .filters{width:100%;justify-content:flex-start}
+  .total-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .table-wrap table{min-width:1180px}
+}
+@media (max-width:560px){
+  .wrap{padding:0 12px 34px}
+  .hero{gap:14px}
+  .brand-wordmark{font-size:24px}
+  .hero h1{font-size:27px}
+  .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+  .actions button{width:100%;padding:0 9px}
+  .actions .auto-refresh-status,.actions .refresh-status{grid-column:1/-1}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi{min-height:104px;padding:14px}
+  .kpi .value{font-size:25px}
+  .card{padding:15px;border-radius:11px}
+  .filterbar .filters{display:grid;grid-template-columns:1fr;width:100%}
+  .filterbar label{display:grid;grid-template-columns:54px minmax(0,1fr);width:100%}
+  .filterbar select{width:100%;min-width:0}
+  .filterbar .filter-apply{width:100%}
+  .total-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .barrow{grid-template-columns:minmax(86px,118px) minmax(70px,1fr) minmax(78px,98px);gap:7px}
+  .refresh-toast{left:12px;right:12px;top:12px;justify-content:center}
+}
+
+/* Long-text cells: keep each appeal type readable instead of squeezing characters into a narrow column. */
+.direction-text.compact{display:flex;flex-direction:column;align-items:stretch;gap:5px;max-height:none;overflow:visible}
+.direction-text span{white-space:normal;overflow-wrap:anywhere;word-break:normal;line-height:1.45}
+.direction-text.compact span{width:100%;max-width:100%;text-align:left}
+.appeal-top-type{display:block;max-width:100%;padding:5px 8px;border:1px solid #f0d7ca;border-radius:7px;background:#fff8f4;color:#824022;font-size:10px;font-weight:750;line-height:1.45;white-space:normal;overflow-wrap:anywhere;word-break:normal}
+.table-wide-text{width:max-content;min-width:1460px;table-layout:fixed}
+.table-wide-text col[data-key="申诉方向总结"]{width:360px!important}
+.table-wide-text col[data-key="申诉类型一览"]{width:340px!important}
+.table-wide-text col[data-key="成功比例最高的申诉类型"]{width:250px!important}
+.table-wide-text col[data-key="产品"]{width:120px!important}
+.table-wide-text col[data-key="负责人"]{width:130px!important}
+.table-wide-text col[data-key="负责产品"]{width:220px!important}
+.table-wide-text col[data-key="周次"]{width:112px!important}
+.table-wide-text col[data-type="num"],.table-wide-text col[data-type="pct"]{width:112px!important}
+.table-wide-text th,.table-wide-text td{vertical-align:top}
+.table-wide-text td:not(.num){word-break:normal}
+@media (max-width:1200px){.table-wide-text{min-width:1320px}}
+@media (max-width:800px){.table-wide-text{min-width:1180px}.direction-text.compact span{font-size:10px}}
 </style>
 </head>
 <body>
@@ -315,9 +486,9 @@ function table(rows,cols){
   if(!rows.length)return '<div class="empty">当前筛选条件下暂无数据</div>';
   const tableId='table-'+(++tableSeq), visibleRows=rows.filter(r=>!r.__total).length, hasTotal=rows.some(r=>r.__total);
   const headers=cols.map(c=>'<th class="'+(c.num?'num ':'')+'sortable" data-sort-type="'+(c.type||'text')+'" aria-sort="none" onclick="sortTable(this)" title="点击排序">'+esc(c.label)+'<span class="sort-indicator">↕</span></th>').join('');
-  const hasDirection=cols.some(c=>c.key==='申诉方向总结'), numericCount=cols.filter(c=>c.type==='num'||c.type==='pct').length;const colgroup=cols.map(c=>{let w='auto';if(hasDirection&&c.key==='申诉方向总结')w='27%';else if(hasDirection&&c.key==='负责产品')w='22%';else if(hasDirection&&c.key==='周次')w='12%';else if(hasDirection&&c.key==='产品')w='10%';else if(hasDirection&&c.key==='负责人')w='12%';else if(hasDirection&&(c.type==='num'||c.type==='pct'))w=(49/Math.max(numericCount,1)).toFixed(2)+'%';else if(c.key==='负责产品')w='25%';else if(c.key==='口径说明'||c.key==='判定规则')w='40%';else if(c.key==='周次')w='17%';else if(c.key==='产品')w='15%';else if(c.key==='负责人')w='15%';else if(c.type==='num'||c.type==='pct')w=(70/Math.max(numericCount,1)).toFixed(2)+'%';return '<col style="width:'+w+'">';}).join('');
-  const body=rows.map(r=>'<tr class="'+(r.__total?'total-row':'')+'">'+cols.map(c=>{const raw=r[c.key], sortValue=raw===null||raw===undefined?'':String(raw);let v=raw;if(c.type==='pct')v=fmtPct(v);else if(c.type==='num')v=fmtNum(v);if(v===null||v===undefined||v==='')v='—';let content;if(c.key==='申诉方向总结'&&raw&&raw!=='—'){const parts=String(raw).split('；').filter(Boolean), shown=c.compact?parts.slice(0,4):parts, more=c.compact&&parts.length>shown.length?'<span class="direction-more">+'+(parts.length-shown.length)+'项</span>':'';content='<div class="direction-text '+(c.compact?'compact':'')+'" title="'+esc(raw)+'">'+shown.map(x=>'<span>'+esc(x)+'</span>').join('')+more+'</div>';}else if(c.type==='pct'){content='<span class="pill '+(Number(raw||0)>0?'good':'neutral')+'">'+esc(v)+'</span>';}else{content=esc(v);}return '<td class="'+(c.num?'num ':'')+'" data-sort-value="'+esc(sortValue)+'">'+content+'</td>';}).join('')+'</tr>').join('');
-  return '<div class="table-toolbar"><span class="table-hint">点击列标题可排序</span><span class="table-count">'+fmtNum(visibleRows)+' 行'+(hasTotal?' · 总计固定在底部':'')+'</span></div><div class="table-wrap"><table id="'+tableId+'" data-sort-table="true"><colgroup>'+colgroup+'</colgroup><thead><tr>'+headers+'</tr></thead><tbody>'+body+'</tbody></table></div>';
+  const longTextKeys=['申诉方向总结','申诉类型一览','成功比例最高的申诉类型'], hasLongText=cols.some(c=>longTextKeys.includes(c.key)), numericCount=cols.filter(c=>c.type==='num'||c.type==='pct').length;const colgroup=cols.map(c=>{let w='auto';if(hasLongText){w=c.type==='num'||c.type==='pct'?'112px':'150px';}else if(c.key==='负责产品')w='25%';else if(c.key==='口径说明'||c.key==='判定规则')w='40%';else if(c.key==='周次')w='17%';else if(c.key==='产品')w='15%';else if(c.key==='负责人')w='15%';else if(c.type==='num'||c.type==='pct')w=(70/Math.max(numericCount,1)).toFixed(2)+'%';return '<col data-key="'+esc(c.key)+'" data-type="'+esc(c.type||'text')+'" style="width:'+w+'">';}).join('');
+  const body=rows.map(r=>'<tr class="'+(r.__total?'total-row':'')+'">'+cols.map(c=>{const raw=r[c.key], sortValue=raw===null||raw===undefined?'':String(raw);let v=raw;if(c.type==='pct')v=fmtPct(v);else if(c.type==='num')v=fmtNum(v);if(v===null||v===undefined||v==='')v='—';let content;if((c.key==='申诉方向总结'||c.key==='申诉类型一览')&&raw&&raw!=='—'){const parts=String(raw).split('；').filter(Boolean), shown=c.compact?parts.slice(0,4):parts, more=c.compact&&parts.length>shown.length?'<span class="direction-more">+'+(parts.length-shown.length)+'项</span>':'';content='<div class="direction-text '+(c.compact?'compact':'')+'" title="'+esc(raw)+'">'+shown.map(x=>'<span>'+esc(x)+'</span>').join('')+more+'</div>';}else if(c.key==='成功比例最高的申诉类型'&&raw&&raw!=='—'){content='<span class="appeal-top-type" title="'+esc(raw)+'">'+esc(raw)+'</span>';}else if(c.type==='pct'){content='<span class="pill '+(Number(raw||0)>0?'good':'neutral')+'">'+esc(v)+'</span>';}else{content=esc(v);}return '<td class="'+(c.num?'num ':'')+'" data-sort-value="'+esc(sortValue)+'">'+content+'</td>';}).join('')+'</tr>').join('');
+  return '<div class="table-toolbar"><span class="table-hint">点击列标题可排序</span><span class="table-count">'+fmtNum(visibleRows)+' 行'+(hasTotal?' · 总计固定在底部':'')+'</span></div><div class="table-wrap"><table id="'+tableId+'" class="'+(hasLongText?'table-wide-text':'')+'" data-sort-table="true"><colgroup>'+colgroup+'</colgroup><thead><tr>'+headers+'</tr></thead><tbody>'+body+'</tbody></table></div>';
 }
 function sortTable(th){
   const table=th.closest('table'), tbody=table.tBodies[0], col=th.cellIndex, type=th.dataset.sortType||'text';
@@ -330,9 +501,10 @@ function sortTable(th){
   normal.concat(totals).forEach(row=>tbody.appendChild(row));
 }
 function selectHtml(id,label,options,selected){return '<label>'+esc(label)+' <select id="'+id+'">'+options.map(o=>'<option value="'+esc(o.value)+'" '+(o.value===selected?'selected':'')+'>'+esc(o.label)+'</option>').join('')+'</select></label>';}
-function multiSelectHtml(id,label,values,selected=[]){const chosen=new Set(selected);return '<label>'+esc(label)+' <select id="'+id+'" multiple size="4" aria-label="'+esc(label)+'">'+values.map(v=>'<option value="'+esc(v)+'" '+(chosen.has(v)?'selected':'')+'>'+esc(v)+'</option>').join('')+'</select></label><span class="filter-help">可按 Ctrl/⌘ 多选</span>';}
+function multiSelectHtml(id,label,values,selected=[]){const chosen=new Set(selected);return '<div class="filter-multi"><div class="filter-multi-head"><span class="filter-multi-title">'+esc(label)+'</span><span class="filter-multi-summary" id="'+id+'Summary" aria-live="polite"></span></div><div class="filter-multi-actions"><button type="button" class="filter-multi-action" id="'+id+'SelectAll">全选</button><button type="button" class="filter-multi-action" id="'+id+'Clear">不限</button></div><select id="'+id+'" multiple size="4" aria-label="'+esc(label)+'">'+values.map(v=>'<option value="'+esc(v)+'" '+(chosen.has(v)?'selected':'')+'>'+esc(v)+'</option>').join('')+'</select><span class="filter-multi-hint">可使用 Ctrl / ⌘ 进行单项多选</span></div>';}
 function applyFiltersButtonHtml(id){return '<button type="button" class="filter-apply" id="'+id+'" data-pending="false" aria-live="polite">筛选</button>'; }
-function bindApplyFilters(buttonId,filterIds,render){const button=document.getElementById(buttonId);filterIds.forEach(id=>document.getElementById(id).addEventListener('change',()=>{button.dataset.pending='true';button.textContent='应用筛选';}));button.addEventListener('click',()=>{render();button.dataset.pending='false';button.textContent='已更新';});}
+function updateMultiSelectSummary(select){const selected=select.selectedOptions.length,total=select.options.length,summary=document.getElementById(select.id+'Summary');if(summary)summary.textContent=selected?`已选 ${selected}/${total}`:`不限（全部 ${total} 项）`;}
+function bindApplyFilters(buttonId,filterIds,render){const button=document.getElementById(buttonId),markPending=()=>{button.dataset.pending='true';button.textContent='应用筛选';};filterIds.forEach(id=>{const select=document.getElementById(id);select.addEventListener('change',()=>{if(select.multiple)updateMultiSelectSummary(select);markPending();});if(select.multiple){updateMultiSelectSummary(select);document.getElementById(id+'SelectAll').addEventListener('click',()=>{[...select.options].forEach(option=>{option.selected=true;});updateMultiSelectSummary(select);markPending();});document.getElementById(id+'Clear').addEventListener('click',()=>{[...select.options].forEach(option=>{option.selected=false;});updateMultiSelectSummary(select);markPending();});}});button.addEventListener('click',()=>{render();button.dataset.pending='false';button.textContent='已更新';});}
 function distinct(rows,key){return [...new Set(rows.map(r=>r[key]).filter(Boolean))];}
 function tableRows(table){const rows=Array.isArray(table)?table:[];const headers=rows[0]||[];return rows.slice(1).map(row=>Object.fromEntries(headers.map((key,i)=>[key,row[i]])));}
 const productWeek=tableRows(DATA.product_review_week||DATA.product_week),productSummary=tableRows(DATA.product_summary),appealShare=tableRows(DATA.appeal_share),appealTotal=tableRows(DATA.appeal_total),reviewShare=tableRows(DATA.review_share),reviewTotal=tableRows(DATA.review_total),ownerWeek=tableRows(DATA.owner_week),notes=tableRows(DATA.notes),linkNotes=tableRows(DATA.link_notes);
