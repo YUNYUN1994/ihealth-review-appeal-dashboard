@@ -76,7 +76,7 @@ test('week filters only offer valid weeks of their own dimension and labels name
   const rows = [{ 周次: '2026-W42 (10/12-10/18)' }, { 周次: '申诉周未填写' }, { 周次: '' }, { 周次: null }, { 周次: '2026-W40 (09/28-10/04)' }, { 周次: '2026-W42 (10/12-10/18)' }];
   assert.deepEqual([...ctx.weeksOf(rows)], ['2026-W40 (09/28-10/04)', '2026-W42 (10/12-10/18)']);
   assert.equal(ctx.isValidWeek('申诉周未填写'), false);
-  assert.match(html, /multiSelectHtml\('productWeekFilter','留评周（可多选）',productWeeks,/);
+  assert.match(html, /multiSelectHtml\('productWeekFilter','留评周',productWeeks,/);
   assert.match(html, /productWeeks=weeksOf\(productWeek\)/);
   for (const label of ['本申诉周申诉数', '本申诉周删除数', '所选留评周申诉数', '所选留评周删除数']) assert.ok(html.includes(label), label);
   assert.ok(!html.includes("'本周申诉数量'") && !html.includes("'本周删除数量'"));

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "check": "node --check server.mjs && node --check lib/review-feishu.mjs && node --check lib/review-storage.mjs && node --check lib/review-refresh.mjs && node --check rebuild_live_precheck.mjs && node --check update_frontend_report.mjs && node --check scripts/auto-refresh.mjs",
-    "test": "node --test tests/product-week.test.mjs tests/review-fixes.test.mjs tests/server-subpath.test.mjs"
+    "test": "node --test tests/product-week.test.mjs tests/review-fixes.test.mjs tests/server-subpath.test.mjs tests/filter-multiselect.test.mjs"
   },
   "engines": { "node": ">=20" }
 }

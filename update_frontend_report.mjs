@@ -293,6 +293,25 @@ data.review_share = table(reviewShareHeader, rowsFromGroups(productReviewGroups)
 const ownerWeekHeader = ['周次','负责人','负责产品','申诉数量','已删除数量','申诉成功率','状态空白数','待跟进数'];
 data.owner_week = table(ownerWeekHeader, [...ownerWeeks.values()].sort((a,b)=>(a.week==='申诉周未填写'?1:0)-(b.week==='申诉周未填写'?1:0)||weekSort(a.week,b.week)||compareText(a.owner,b.owner)).map((g)=>{const appeals=g.records.filter(isAppealRecord),deleted=appeals.filter(isDeleted).length;return {周次:g.week,负责人:g.owner,负责产品:[...new Set(g.records.map((r)=>r.reportProduct).filter(Boolean))].sort(compareText).join('、'),申诉数量:appeals.length,已删除数量:deleted,申诉成功率:appeals.length?pct(deleted,appeals.length):null,状态空白数:appeals.filter((r)=>!explicitSubmitted(r)).length,待跟进数:appeals.filter(statusPending).length};}));
 
+// Preserve owner/week totals; expose their product breakdown for exact multi-product filtering.
+const ownerProductGroups = [...ownerWeeks.values()].flatMap((group) => {
+  const products = new Map();
+  for (const record of group.records) {
+    const product = record.reportProduct || '';
+    if (!products.has(product)) products.set(product, []);
+    products.get(product).push(record);
+  }
+  return [...products].map(([product, records]) => {
+    const appeals = records.filter(isAppealRecord), deleted = appeals.filter(isDeleted).length;
+    return { 周次: group.week, 负责人: group.owner, 产品: product,
+      申诉数量: appeals.length, 已删除数量: deleted,
+      申诉成功率: pct(deleted, appeals.length),
+      状态空白数: appeals.filter((r) => !explicitSubmitted(r)).length,
+      待跟进数: appeals.filter(statusPending).length };
+  });
+});
+data.owner_product_week = table(['周次','负责人','产品','申诉数量','已删除数量','申诉成功率','状态空白数','待跟进数'], ownerProductGroups);
+
 data.meta = { ...(data.meta || {}), sales: { rows: salesRowsSeen.length, parsedRows: salesRowsSeen.filter((r) => !r.invalid).length, invalidRows: salesRowsSeen.filter((r) => r.invalid).length, indexKeys: salesIndex.size } };
 const deletedCount = records.filter(isDeleted).length;
 const primaryDeletedCount = records.filter(isPrimaryDeleted).length;
@@ -309,7 +328,7 @@ data.notes = [
   ['申诉方向', '先归纳为方向类别；未填写方向不加入方向分析；同一条记录可命中多个方向，因此各方向占比合计可能超过100%。'],
   ['周次', '按周一至周日的 ISO 周计算。重复记录的日期以第一份源表为准，缺失时才用后续来源补齐。'],
   ['产品维度', '产品名缺失的记录不进入产品维度及“周次 × 产品”占比（已删除记录会单独列出排除原因），但仍计入周总计和负责人统计。产品累计删除数量包含缺少申诉日期的已删除记录，这类记录只是不进入按申诉周统计的周明细。'],
-  ['“本周”口径', '总览的“本申诉周申诉数/删除数/成功率”以申诉周（默认完整周）为锚点；产品维度的“所选留评周申诉数/删除数/新增差评/销量/差评率”以所选留评周为锚点（未选择时为默认完整周）。两者锚点不同，数值可以不同。'],
+  ['“本周”口径', '总览的“本申诉周申诉数/删除数/成功率”以申诉周（默认完整周）为锚点；产品维度的“所选留评周申诉数/删除数/新增差评/销量/差评率”以所选留评周为锚点（初始默认完整周；清空或全选为全部周次）。两者锚点不同，数值可以不同。'],
   ['销量与差评率', '销量来自“领星_周度订单利润”表，按 ASIN + ISO 周匹配；当销量缺失时显示“—”，不把未知销量当作 0，也不计算虚假的差评率。'],
   ['比例分母为 0', '任何比例的分母为 0 时显示“-”，不显示 0%、NaN 或 Infinity。'],
   ['自动更新', '每天 22:00（Asia/Shanghai）自动重新调用飞书开放平台 API 读取全部允许的数据源并重新计算；失败时保留上一次成功数据。'],
