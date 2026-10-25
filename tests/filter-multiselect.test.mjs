@@ -18,9 +18,9 @@ const records=[
 ];
 function build(){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'review-multi-'));try{const env={...process.env};for(const [key,file] of Object.entries({REVIEW_RECORDS_PATH:'records.json',REVIEW_DATA_PATH:'data.json',REVIEW_SALES_PATH:'sales.json',REVIEW_CHECKS_PATH:'checks.json',REVIEW_VERIFIED_PATH:'verified.json'}))env[key]=path.join(dir,file);fs.writeFileSync(env.REVIEW_RECORDS_PATH,JSON.stringify(records));execFileSync(process.execPath,[fileURLToPath(new URL('../update_frontend_report.mjs',import.meta.url))],{env});return JSON.parse(fs.readFileSync(env.REVIEW_DATA_PATH));}finally{fs.rmSync(dir,{recursive:true,force:true});}}
 const data=build();
-test('all nine filters use the common multi-select with select-all and clear actions',()=>{
+test('all ten filters use the common multi-select with select-all and clear actions',()=>{
  const uses=[...html.matchAll(/multiSelectHtml\('([^']+)'/g)].map(m=>m[1]);
- assert.deepEqual(uses,['productWeekFilter','productProductFilter','appealWeekFilter','appealProductFilter','reviewWeekFilter','reviewProductFilter','ownerWeekFilter','ownerProductFilter','ownerFilter']);
+ assert.deepEqual(uses,['overviewWeekFilter','productWeekFilter','productProductFilter','appealWeekFilter','appealProductFilter','reviewWeekFilter','reviewProductFilter','ownerWeekFilter','ownerProductFilter','ownerFilter']);
  assert.doesNotMatch(html,/\boptionsFor\(/);
  assert.match(fn('multiSelectHtml'),/multiple/);assert.match(fn('multiSelectHtml'),/SelectAll/);assert.match(fn('multiSelectHtml'),/Clear/);
  for(const script of html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g))new vm.Script(script[1]);
@@ -49,4 +49,27 @@ test('owner product multi-select counts only matching products, including undate
 test('week and product filters support independent multi-selection and unlimited clearing',()=>{
  const ctx=context();const rows=[{周次:'W38',产品:'A'},{周次:'W39',产品:'B'},{周次:'W40',产品:'C'}];
  assert.equal(ctx.filterRows(rows,['W38','W39'],['A','B']).length,2);assert.equal(ctx.filterRows(rows,[],['A','C']).length,2);assert.equal(ctx.filterRows(rows,[],[]).length,3);
+});
+
+test('overview starts on default week, applies another week, and supports cumulative all weeks',()=>{
+ const rows=objects(data.product_review_week),weeks=[...new Set(rows.map(r=>r.周次))];
+ const elements={},element=id=>elements[id]??={innerHTML:'',dataset:{},listeners:{},addEventListener(event,cb){this.listeners[event]=cb;}};
+ let rendered;
+ const ctx=context({DATA:{...data,meta:{...data.meta,defaultWeek:weeks[0]}},latestWeek:weeks.at(-1),productWeeks:weeks,productWeek:rows,productSummary:objects(data.product_summary),document:{getElementById:element},esc:String,fmtNum:String,excludedProductNote:()=>'',applyFiltersButtonHtml:()=>'',table:(values,cols)=>{rendered={values,cols};return 'table';},multiSelectHtml:(id,label,values,chosen)=>{const select=element(id);select.multiple=true;select.options=values.map(value=>({value,selected:chosen.includes(value)}));Object.defineProperty(select,'selectedOptions',{get(){return this.options.filter(o=>o.selected);}});return '清空选择（显示全部）';}});
+ for(const name of ['totalProductSummaryRow','renderOverview'])vm.runInContext(fn(name),ctx);
+ ctx.renderOverview();
+ const select=element('overviewWeekFilter'),total=()=>rendered.values.at(-1);
+ assert.deepEqual(select.selectedOptions.map(o=>o.value),[weeks[0]]);
+ assert.equal(total().本周新增差评,2);assert.equal(total().所选留评周申诉数,2);assert.equal(total().所选留评周删除数,1);
+ const cumulative=total().累计删除数量;
+ select.options.forEach(o=>o.selected=o.value===weeks[1]);select.listeners.change();
+ assert.equal(total().所选留评周申诉数,2,'changing selection must not apply before button');
+ element('overviewApplyFilters').listeners.click();
+ assert.equal(total().所选留评周申诉数,1);assert.equal(total().累计删除数量,cumulative);
+ assert.ok(element('overviewWeekContext').innerHTML.includes(weeks[1]));
+ element('overviewWeekFilterClear').listeners.click();element('overviewApplyFilters').listeners.click();
+ assert.equal(total().本周新增差评,4);assert.equal(total().所选留评周申诉数,3);assert.equal(total().所选留评周删除数,2);
+ assert.equal(total().累计删除数量,cumulative);assert.match(element('overviewWeekContext').innerHTML,/累计所有周/);
+ assert.ok(rendered.cols.some(c=>c.label==='全部留评周销量'));
+ element('overviewWeekFilterSelectAll').listeners.click();element('overviewApplyFilters').listeners.click();assert.equal(total().所选留评周申诉数,3);
 });
