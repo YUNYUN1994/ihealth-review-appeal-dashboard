@@ -22,7 +22,8 @@ test('all ten filters use the common multi-select with select-all and clear acti
  const uses=[...html.matchAll(/multiSelectHtml\('([^']+)'/g)].map(m=>m[1]);
  assert.deepEqual(uses,['overviewWeekFilter','productWeekFilter','productProductFilter','appealWeekFilter','appealProductFilter','reviewWeekFilter','reviewProductFilter','ownerWeekFilter','ownerProductFilter','ownerFilter']);
  assert.doesNotMatch(html,/\boptionsFor\(/);
- assert.match(fn('multiSelectHtml'),/multiple/);assert.match(fn('multiSelectHtml'),/SelectAll/);assert.match(fn('multiSelectHtml'),/Clear/);
+ assert.match(fn('multiSelectHtml'),/multiple/);assert.match(fn('multiSelectHtml'),/multi-dropdown-trigger/);assert.match(fn('multiSelectHtml'),/multi-dropdown-search/);assert.match(fn('multiSelectHtml'),/SelectAll/);assert.match(fn('multiSelectHtml'),/Clear/);assert.match(fn('multiSelectHtml'),/Cancel/);assert.match(fn('multiSelectHtml'),/Confirm/);
+ assert.match(html,/\.multi-dropdown-panel\{/);assert.match(html,/\.multi-dropdown-options\{[^}]*overflow:auto/);assert.match(html,/\.filter-multi select\[multiple\]\{display:none\}/);
  for(const script of html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g))new vm.Script(script[1]);
 });
 test('selecting, select-all and clearing only apply on the filter button click',()=>{
