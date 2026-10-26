@@ -47,7 +47,7 @@ body{
 }
 button,select{font:inherit}
 button{touch-action:manipulation}
-.wrap{max-width:1600px;margin:0 auto;padding:0 32px 56px}
+.wrap{width:100%;max-width:2400px;margin:0 auto;padding:0 clamp(18px,1.6vw,38px) 56px}
 
 /* Brand-led masthead */
 .hero{
@@ -303,7 +303,7 @@ tr.total-row td{position:sticky;bottom:0;z-index:1;background:#fff0e9;color:#713
   --radius-lg:14px;
 }
 body{background:linear-gradient(180deg,#ffffff 0,#f7f9fa 210px,var(--bg) 520px)}
-.wrap{max-width:1720px;padding:0 38px 64px}
+.wrap{max-width:2400px;padding:0 clamp(18px,1.6vw,38px) 64px}
 .hero{
   position:relative;
   grid-template-columns:minmax(0,1fr) minmax(420px,auto);
@@ -473,18 +473,12 @@ tr.total-row td{background:#fff1e9;border-top:2px solid #ffc4a9}
 .direction-text span{white-space:normal;overflow-wrap:anywhere;word-break:normal;line-height:1.45}
 .direction-text.compact span{width:100%;max-width:100%;text-align:left}
 .appeal-top-type{display:block;max-width:100%;padding:5px 8px;border:1px solid #f0d7ca;border-radius:7px;background:#fff8f4;color:#824022;font-size:10px;font-weight:750;line-height:1.45;white-space:normal;overflow-wrap:anywhere;word-break:normal}
-.table-wide-text{width:max-content;min-width:1460px;table-layout:fixed}
-.table-wide-text col[data-key="申诉方向总结"]{width:360px!important}
-.table-wide-text col[data-key="申诉类型一览"]{width:340px!important}
-.table-wide-text col[data-key="成功比例最高的申诉类型"]{width:250px!important}
-.table-wide-text col[data-key="产品"]{width:120px!important}
-.table-wide-text col[data-key="负责人"]{width:130px!important}
-.table-wide-text col[data-key="负责产品"]{width:220px!important}
-.table-wide-text col[data-key="周次"]{width:112px!important}
-.table-wide-text col[data-type="num"],.table-wide-text col[data-type="pct"]{width:112px!important}
-.table-wide-text th,.table-wide-text td{vertical-align:top}
+.table-wide-text{width:100%;min-width:0;table-layout:fixed}
+.table-wide-text th,.table-wide-text td{vertical-align:top;padding-left:8px;padding-right:8px}
+.table-wide-text th{white-space:normal;line-height:1.25;overflow-wrap:anywhere}
 .table-wide-text td:not(.num){word-break:normal}
-@media (max-width:1200px){.table-wide-text{min-width:1320px}}
+.table-wide-text .direction-item{padding:4px 6px}
+@media (max-width:1100px){.table-wide-text{min-width:1120px}}
 @media (max-width:800px){.table-wide-text{min-width:1180px}.direction-text.compact span{font-size:10px}}
 
 .review-rate{display:flex;flex-direction:column;align-items:flex-end;gap:7px;white-space:nowrap}.review-rate-formula,.total-detail{display:block;font-size:12px;font-weight:500;line-height:1.5;color:var(--muted);font-variant-numeric:tabular-nums}.total-detail{margin-top:6px}.review-rate-note{font-size:10px;color:var(--muted);white-space:normal;max-width:112px}
@@ -510,7 +504,9 @@ function table(rows,cols){
   if(!rows.length)return '<div class="empty">当前筛选条件下暂无数据</div>';
   const tableId='table-'+(++tableSeq), visibleRows=rows.filter(r=>!r.__total).length, hasTotal=rows.some(r=>r.__total);
   const headers=cols.map(c=>'<th class="'+(c.num?'num ':'')+'sortable" data-sort-type="'+(c.type||'text')+'" aria-sort="none" onclick="sortTable(this)" title="点击排序">'+esc(c.label)+'<span class="sort-indicator">↕</span></th>').join('');
-  const longTextKeys=['申诉方向总结','申诉类型一览','成功比例最高的申诉类型'], hasLongText=cols.some(c=>longTextKeys.includes(c.key)), numericCount=cols.filter(c=>c.type==='num'||c.type==='pct').length;const colgroup=cols.map(c=>{let w='auto';if(hasLongText){w=c.type==='num'||c.type==='pct'?'112px':'150px';}else if(c.key==='负责产品')w='25%';else if(c.key==='口径说明'||c.key==='判定规则')w='40%';else if(c.key==='周次')w='17%';else if(c.key==='产品')w='15%';else if(c.key==='负责人')w='15%';else if(c.type==='num'||c.type==='pct')w=(70/Math.max(numericCount,1)).toFixed(2)+'%';return '<col data-key="'+esc(c.key)+'" data-type="'+esc(c.type||'text')+'" style="width:'+w+'">';}).join('');
+  const longTextKeys=['申诉方向总结','申诉类型一览','成功比例最高的申诉类型'], hasLongText=cols.some(c=>longTextKeys.includes(c.key)), numericCount=cols.filter(c=>c.type==='num'||c.type==='pct').length;
+  const colWeights=hasLongText?cols.map(c=>c.type==='num'||c.type==='pct'?1:c.key==='申诉方向总结'?3.2:c.key==='申诉类型一览'?2.8:c.key==='成功比例最高的申诉类型'?2.5:c.key==='负责产品'?2.2:c.key==='产品'||c.key==='负责人'||c.key==='周次'?1.2:1.4):[], totalWeight=colWeights.reduce((sum,w)=>sum+w,0);
+  const colgroup=cols.map((c,index)=>{let w='auto';if(hasLongText){w=(colWeights[index]/totalWeight*100).toFixed(2)+'%';}else if(c.key==='负责产品')w='25%';else if(c.key==='口径说明'||c.key==='判定规则')w='40%';else if(c.key==='周次')w='17%';else if(c.key==='产品')w='15%';else if(c.key==='负责人')w='15%';else if(c.type==='num'||c.type==='pct')w=(70/Math.max(numericCount,1)).toFixed(2)+'%';return '<col data-key="'+esc(c.key)+'" data-type="'+esc(c.type||'text')+'" style="width:'+w+'">';}).join('');
   const body=rows.map(r=>'<tr class="'+(r.__total?'total-row':'')+'">'+cols.map(c=>{const raw=r[c.key], sortValue=raw===null||raw===undefined?'':String(raw);let v=raw;if(c.type==='pct')v=fmtPct(v);else if(c.type==='num')v=fmtNum(v);if(v===null||v===undefined||v==='')v='—';let content;if((c.key==='申诉方向总结'||c.key==='申诉类型一览')&&raw&&raw!=='—'){const parts=String(raw).split('；').filter(Boolean), shown=c.compact?parts.slice(0,4):parts, more=c.compact&&parts.length>shown.length?'<span class="direction-more">+'+(parts.length-shown.length)+'项</span>':'';content='<div class="direction-text '+(c.compact?'compact':'')+'" title="'+esc(raw)+'">'+shown.map(x=>'<span>'+esc(x)+'</span>').join('')+more+'</div>';}else if(c.key==='成功比例最高的申诉类型'&&raw&&raw!=='—'){content='<span class="appeal-top-type" title="'+esc(raw)+'">'+esc(raw)+'</span>';}else if(c.rateDetail){content='<div class="review-rate"><span class="pill neutral">'+esc(v)+'</span><span class="review-rate-formula" title="新增差评数 / 销量">'+esc(productReviewRateFormula(r))+'</span>'+(r['差评率部分覆盖']&&raw!==null?'<span class="review-rate-note">仅含有销量记录</span>':'')+'</div>';}else if(c.type==='pct'){content='<span class="pill '+(Number(raw||0)>0?'good':'neutral')+'">'+esc(v)+'</span>';}else{content=esc(v);}return '<td class="'+(c.num?'num ':'')+'" data-sort-value="'+esc(sortValue)+'">'+content+'</td>';}).join('')+'</tr>').join('');
   return '<div class="table-toolbar"><span class="table-hint">点击列标题可排序</span><span class="table-count">'+fmtNum(visibleRows)+' 行'+(hasTotal?' · 总计固定在底部':'')+'</span></div><div class="table-wrap"><table id="'+tableId+'" class="'+(hasLongText?'table-wide-text':'')+'" data-sort-table="true"><colgroup>'+colgroup+'</colgroup><thead><tr>'+headers+'</tr></thead><tbody>'+body+'</tbody></table></div>';
 }
