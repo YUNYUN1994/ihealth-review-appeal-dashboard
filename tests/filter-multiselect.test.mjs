@@ -74,3 +74,17 @@ test('overview starts on default week, applies another week, and supports cumula
  assert.ok(rendered.cols.some(c=>c.label==='全部留评周销量'));
  element('overviewWeekFilterSelectAll').listeners.click();element('overviewApplyFilters').listeners.click();assert.equal(total().所选留评周申诉数,3);
 });
+
+
+test('compact appeal types expand and collapse when clicked',()=>{
+ assert.match(html,/class="direction-more"[^>]*aria-expanded="false"/);
+ assert.match(html,/onclick="toggleDirectionItems\(this\)"/);
+ assert.match(html,/class="direction-item"/);
+ assert.match(html,/index>=4\?' hidden':''/);
+ const items=Array.from({length:7},(_,index)=>({hidden:index>=4})),state={expanded:false};
+ const box={classList:{toggle(name,value){assert.equal(name,'is-expanded');state.expanded=value;}},querySelectorAll(selector){assert.equal(selector,'.direction-item');return items;}};
+ const button={dataset:{count:'3'},textContent:'+3项',attributes:{'aria-expanded':'false'},closest(selector){assert.equal(selector,'.direction-text');return box;},getAttribute(name){return this.attributes[name];},setAttribute(name,value){this.attributes[name]=value;}};
+ const ctx=vm.createContext({});vm.runInContext(fn('toggleDirectionItems'),ctx);
+ ctx.toggleDirectionItems(button);assert.equal(state.expanded,true);assert.equal(button.attributes['aria-expanded'],'true');assert.equal(button.textContent,'收起');assert.ok(items.every(item=>item.hidden===false));
+ ctx.toggleDirectionItems(button);assert.equal(state.expanded,false);assert.equal(button.attributes['aria-expanded'],'false');assert.equal(button.textContent,'+3项');assert.ok(items.slice(0,4).every(item=>item.hidden===false));assert.ok(items.slice(4).every(item=>item.hidden===true));
+});
